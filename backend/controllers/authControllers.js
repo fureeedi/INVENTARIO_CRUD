@@ -54,14 +54,15 @@ exports.signup = async (req, res) => {
         //POSTMAN 200 AFIRMATIVO - Usuario registrado exitosamente
         res.status(200).json({
             success: true,
-            message: 'Usuario registrado exitosamente',
+            message: 'Usuario registrado exitosamente!',
             token: token,
             user: userResponse
         });
+
     }catch(error) {
         return res.status(500).json({
-            succes: false,
-            message: 'Error en el registro de usuario',
+            success: false,
+            message: 'Error en el registro de usuario!',
             error: error.message
         });
     }
@@ -80,11 +81,87 @@ exports.signup = async (req, res) => {
 exports.sigin = async (req, res) => {
     try {
         //Validar que se envie el email o username
-        if (!req.body.email $$ !req.body.username) {
+        if (!req.body.email && !req.body.username) {
             return res.status(400).json({
                 success: false,
-                message: 'email o username requerido'
+                message: 'Email o Username requerido!'
             });
         }
+
+        //validar que se envie la contraseña
+        if (!req.body.password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Contraseña requerida'
+            });
+        }
+
+        //Buscar usuario por email o username
+        const user = await User.FindOne({
+            $or: [ // funciona como un "o" lógico - ARRAY - agarra cualquiera de los dos o los que esten 
+                { username: req.body.username },
+                { email: req.body.email }
+            ]
+        }).select('+password'); //Include password field
+
+        //Si no existe el usuario 
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+
+        // Verificar que el usuario tenga contraseña
+        if (!user.password) {
+            return res.status(400).json({
+                success: false,
+                message: 'El usuario no tiene contraseña!'
+            });
+        }
+
+        // Comparar la contraseña enviada con el hash almacenado - HASH: Contraseña encriptada
+        const ispasswordValid = await bcrypt.compare(req.body.password, user.password);
+
+        if (!ispasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Contraseña incorrecta!'
+            });
+        }
+
+        //Generar token JWT que expira en 24 horas
+        const token = jwt.sign(
+            {
+                id: user._id,
+                role: user.role,
+                email: user.email
+            },
+
+            config.secret,
+            { expiresIn: config.jwtExpiration }
+        );
+
+        // Prepara respuestas sin mostrar la contraseña
+        const UserResponse = {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role
+        };
+
+        //POSTMAN 200 AFIRMATIVO - Usuario registrado exitosamente
+        res.status(200).json({
+            success: true,
+            message: 'Inicio de sesi+on exitoso!',
+            token: token,
+            user: UserResponse
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error en el inicio de sesión!'
+        });
     }
-}
+};
