@@ -1,6 +1,6 @@
 /** 
  * modelo de categoria MONGODB
- * define la estructura d ela categoria 
+ * define la estructura de la categoria 
  */
 
 const mongoose=require('mongoose');
