@@ -119,7 +119,7 @@ exports.getSubcategoryById = async (req, res) => {
     if (!subcategory) {
         return res.status(404).json({
             success: false,
-            message: 'Subcategoria no encontrada'
+            message: 'Subcategoria no encontrada',
         });
     }
 
@@ -145,7 +145,7 @@ exports.getSubcategoryById = async (req, res) => {
  * Body:
  * 1 - name: nombre de la subcategoria
  * 2- description: nueva descripcion de la subcategoria
- * 3- category: nuevo id d ela categoria
+ * 3- category: nuevo id de la categoria
  * VALIDACIONES:
  * - Si se cambia la categoria, verifica que exista
  * - Si quiere solo actualiza el nombre o solo la descripción o los dos

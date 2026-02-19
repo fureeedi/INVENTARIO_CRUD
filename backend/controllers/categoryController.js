@@ -37,7 +37,7 @@ exports.createCategory = async (req, res) => {
         const trimmedDesc = description.trim();
         
         // Verificvar si ya existe una categoria con el mismo nombre
-        const existingCategory = await Category.fiindOne({name: trimmedName});
+        const existingCategory = await Category.findOne({name: trimmedName});
 
         if (existingCategory) {
             return res.status(400).json({
