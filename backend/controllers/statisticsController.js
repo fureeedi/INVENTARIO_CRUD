@@ -37,7 +37,7 @@ const getStatistics = async (req, res) => {
             totalProducts,
             totalCategories,
             totalSubcategories,
-        })
+        });
 
     } catch (error) {
         console.error('Error en getStatistics', error);
@@ -47,5 +47,5 @@ const getStatistics = async (req, res) => {
             message: error.message
         });
     }
-}
+};
 module.exports = {getStatistics}
