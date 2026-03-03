@@ -53,9 +53,8 @@ router.put('/:id',
 
 router.delete('/:id',
     verifyToken,
-    checkRole('admin'), // no va validate porque borra toda la información
+    checkRole('admin'), // no va validateSubcategory porque borra toda la información
     subcategoryController.deleteSubcategory
 );
 
 module.exports = router;
-

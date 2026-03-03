@@ -64,7 +64,7 @@ router.put('/:id',
 
 router.delete('/:id',
     verifyToken,
-    checkRole('admin'), // no va validate porque borra toda la información
+    checkRole('admin'), // no va validateProduct porque borra toda la información
     productController.deleteProduct
 );
 
