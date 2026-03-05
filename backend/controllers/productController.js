@@ -1,11 +1,11 @@
 /**
  * Contralador de productos
- * maneja todas la operaciones CRUD relacionadas con los productos 
- * Estructura: una subcategoria depende de una categoria padre, una categoria puede tener varias subcategorias, una subcategoria puede tener varios productos relacionados
- * Cuando una subcategoria se elimina los producto srelaiconados se desactivan
- * Cuando se ejecuta en cascada SOFT DELETE se eliminan de manera permanente
- * Incluye Soft Delete (marcar como inactivo)
- * Y Hard Delete (Eliminación permanente)
+ * - maneja todas la operaciones CRUD relacionadas con los productos 
+ * - Estructura: 
+ * - Cuando una subcategoria se elimina los producto srelaiconados se desactivan
+ * - Cuando se ejecuta en cascada SOFT DELETE se elimina de manera permanente
+ * - Incluye Soft Delete (marcar como inactivo)
+ * - Y Hard Delete (Eliminación permanente)
  */
 
 const Subcategory = require('../models/Subcategory');
@@ -34,8 +34,10 @@ exports.createProduct = async (req, res) => {
         // ============= VALIDACIONES =============
 
         // Validar que todos los campos requeridos esten presentes
+        // Diferencia en campos
         if (!name || !description || !price || !stock || !category || !subcategory ) {
 
+            // campos incompletos
             return res.status(400).json({
                 success: false,
                 message: 'Todos los campos son obligatorios',
@@ -44,22 +46,22 @@ exports.createProduct = async (req, res) => {
         }
 
         // Validar que la categoria existe
-        const categoryExists = await Category.findById(category);
-        if (!categoryExists) {
+        const categoryExist = await Category.findById(category);
+        if (!categoryExist) { // dato nulo - si no existe 
             return res.status(404).json({
                 success: false,
                 message: 'La categoria padre no existe',
-                categoryId: category
+                categoryId: category // id de la categoria que se intento buscar
             });
         }
 
         // Validar que la subcategoria existe y pertenece a la categoria especificada
-        const subcategoryExists = await Subcategory.findOne({
+        const subcategoryExist = await Subcategory.findOne({
             _id: subcategory,
             category: category
         });
 
-        if (!subcategoryExists) {
+        if (!subcategoryExist) {
             return res.status(400).json({
                 success: false,
                 message: 'La subactegoria no existe o no pertence a la categoria especificada'
@@ -78,7 +80,7 @@ exports.createProduct = async (req, res) => {
 
         // Si hay usuario autenticado, registrar quien creo el producto
         if (req.user && req.user_id) {
-            product.createBy = req.user_id;
+            product.createdBy = req.user_id;
         }
 
         // Guardar el producto en la base de datos
@@ -93,7 +95,7 @@ exports.createProduct = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: 'Producto creado exitosamente',
-            data: productWithDetails
+            data: productWithDetails // muestra la información - categoria de producto - subcategoria del producto - quién lo creo - al consultar
         });
 
     } catch (error) {
@@ -107,7 +109,8 @@ exports.createProduct = async (req, res) => {
             });
         }
 
-        res.status(500).json({
+        // Error de conexión al servidor
+        res.status(500).json({ 
             success: false,
             message: 'Error al crear el producto',
             error: error.message
@@ -116,7 +119,7 @@ exports.createProduct = async (req, res) => {
 };
 
 /**
- * READ: Obtener productos (con filtro de activos/inactivos)
+ * READ: Obtener productos (con filtro de activos/inactivos) - Consulta
  * GET /api/products
  * Query params:
  * - includeInactive = true : Mostrarta tambien productos desactivados
@@ -149,10 +152,11 @@ exports.getProducts = async (req, res) => {
 
         }
 
+        // Cosulta exitosa - muestra los productos consultados
         res.status(200).json({
             success: true,
             count: products.length,
-            data: products
+            data: products // información de los productos 
         });
 
     } catch (error) {
@@ -191,6 +195,7 @@ exports.getProductById = async (req, res) => {
             product.createdBy = undefined;
         }
 
+        // Consulta exitosa - muesttra el producto consultado especifico
         res.status(200).json({
             success: true,
             data: product
@@ -217,8 +222,8 @@ exports.getProductById = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
     try { 
-        const { name, description, price, stock, category, subcategory } = req.body;
-        const updateData = {};
+        const { name, description, price, stock, category, subcategory } = req.body; // no esta imgagen ya que es un dato por defecto no obligatorio - null
+        const updateData = {}; // Retiene la información dada - si no se cambia un dato se mantiene con el miso dato al guardar
 
         // Agregar solo los campos que fueron enviados
         if (name) updateData.name = name;
@@ -229,18 +234,19 @@ exports.updateProduct = async (req, res) => {
         if (subcategory) updateData.subcategory = subcategory;
 
         // Validar relaciones si se actualizan
-        if (category || subcategory) {
+        if (category || subcategory) { // deben tener relaciones
+
             if (category) {
                 const categoryExists = await Category.findById(category);
                 if (!categoryExists) {
-                    return res.status(400).json({
+                    return res.status(404).json({
                         success: false,
                         message: 'La categoria solicitada no existe'
                     });    
                 }
             }
 
-            if (subcategory) {
+            if (subcategory) { // verifica que existe la subacategoria y que pertenezca a una categoria
                 const subcategoryExist = await Subcategory.findOne({
                     _id: subcategory,
                     category: category || updateData.category      
@@ -264,7 +270,7 @@ exports.updateProduct = async (req, res) => {
             .populate('createdBy', 'username email');
         
         if (!updateProduct) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
                 message: 'Producto no encontrado'
             });
@@ -322,7 +328,7 @@ exports.deleteProduct = async (req, res) => {
         } else {
 
             // ==== SOFT DELETE: Solo marcar como inactivo ====
-            product.active = false;
+            product.active = false; // pasar a inactivo
             await product.save();
             res.status(200).json({
                 success: true,

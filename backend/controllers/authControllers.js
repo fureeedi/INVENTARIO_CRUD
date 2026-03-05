@@ -4,7 +4,7 @@
  */
 
 const User = require('../models/User');
-const brypt = require('bcryptjs'); //encriptar es un modelo de seguridad para las contraseñas por eso se utiliza bcryptjs - y no se pone la carpeta 
+const bcrypt = require('bcryptjs'); //encriptar es un modelo de seguridad para las contraseñas por eso se utiliza bcryptjs - y no se pone la carpeta 
 const jwt = require('jsonwebtoken'); //para generar el token de autenticación
 const config = require('../config/auth.config'); //para obtener la clave secreta del JWT
 

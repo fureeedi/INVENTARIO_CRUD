@@ -8,6 +8,7 @@ const mongoose=require('mongoose');
 //campos de la tabla categoria 
 
 const categorySchema = new mongoose.Schema({
+  
   //nombre de la categoria unico y requerido
   name:{
     type: String,
@@ -15,6 +16,7 @@ const categorySchema = new mongoose.Schema({
     unique: true,
     trim: true //elimina espacios en blanco al inicio y al final
   },
+
   // Descripcion dela categoria - requerida 
   descripcion:{
     type: String,
@@ -29,9 +31,8 @@ const categorySchema = new mongoose.Schema({
   }
 
 },{
-
- timestamps: true, //agregar createdAt y updateAT automaticamente
- versionKey: false, //No incluir campos _v 
+  timestamps: true, //agregar createdAt y updateAT automaticamente
+  versionKey: false, // No incluir campos _v - no guarda directamente - guarda directamente en el cache de mongo - al llamar no trae los datos
 });
 /**
  * MIDDLEWARE PRE SAVE

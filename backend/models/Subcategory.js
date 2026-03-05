@@ -42,9 +42,8 @@ const subcategorySchema = new mongoose.Schema({
   }
 
 },{
-
- timestamps: true, //agregar createdAt y updateAT automaticamente
- versionKey: false, //No incluir campos _v 
+  timestamps: true, // Agregar createdAt y updateAT automaticamente
+  versionKey: false, // No incluir campos _v - no guarda directamente - guarda directamente en el cache de mongo - al llamar no trae los datos
 });
 /**
  * MIDDLEWARE PRE SAVE

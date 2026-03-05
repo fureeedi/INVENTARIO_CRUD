@@ -1,5 +1,5 @@
 /**
- * Arcivo de index de los modelos 
+ * Archivo de index de los modelos 
  * Este archivo centraliza la importacion de los modelos a mongoose
  * permite importar multiples modelos de forma concisa en otros archivos
  */
