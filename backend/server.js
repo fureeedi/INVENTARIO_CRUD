@@ -4,11 +4,11 @@
  * - Configura Express, cors, conecta MongoDB, define rutas y conecta con el frontend 
  */
 
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const morgan = require('morgan');
+require('dotenv').config(); // Carga todas las variables de entorno
+const express = require('express'); // Conexión a traves del framework - HTTP
+const mongoose = require('mongoose'); // Conexión a MongoDB
+const cors = require('cors'); // Conexión a frontend
+const morgan = require('morgan'); // Registra todas las solicitudes HTTP
 const config = require('./config');
 
 /**
@@ -16,12 +16,12 @@ const config = require('./config');
  * - Verifica que las variables de entorno requeridas esten definidas
  */
 
-if (!process.env.MONGO_URI) {
+if (!process.env.MONGODB_URI) { // variable de entorno existe
     console.error('Error: MONGO_URI no esta definida en .env');
     process.exit(1);
 }
 
-if(!process.env.JWT_SECRET) {
+if(!process.env.JWT_SECRET) { // definida jsonwebtoken
     console.error('Error: JWT_SECRET no esta definida en .env');
     process.exit(1);
 }
@@ -35,7 +35,7 @@ if(!process.env.JWT_SECRET) {
     const statisticsRoutes = require('./routes/statisticsRoutes');
 
     // Iniciar express
-    const app = express();
+    const app = express(); // conexiones 
 
     // Cors permite las solicitudes desde el frontend
     app.use = (cors({
@@ -46,7 +46,7 @@ if(!process.env.JWT_SECRET) {
     // Morgan registra todas las solicitudes HTTP en consola
     app.use(morgan('dev'));
 
-    // Express JSON parsea bodies en formato JSON
+    // Express JSON pasa bodies en formato JSON
     app.use(express.json());
 
     // Express URL encoded soporta datos form-encoded
@@ -81,7 +81,7 @@ mongoose.connect(process.env.MONGODB_URI)
     // Rutas de estadísticas
     app.use('/api/statistics', statisticsRoutes);
 
-    // Maneo de errores
+    // Manejo de errores
     app.use((req, res) => {
         res.status(404).json({
             success: false,

@@ -13,8 +13,8 @@ const { DB_URI } = process.env;
 const connectDB = async () => {
     try {
         await mongoose.connect(DB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+            useNewUrlParser: true, // Nueva conexión - busca puerto
+            useUnifiedTopology: true, 
         });
 
         console.log('OK MongoDB conectado')

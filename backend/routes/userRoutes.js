@@ -11,12 +11,13 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { verifyToken} = require('../middlewares/authJwt');
+const { verifyToken } = require('../middlewares/authJwt');
 const checkRole = require('../middlewares/role');
 
 // Revision de problemas de autenticación y autorización
 
-router.use((req, res, next) => {
+// llama información
+router.use((req, res, next) => { // no ha ejecutado rutas
     console.log('\n=== DIAGNOSTICO FR RUTA ===');
     console.log(`[${new Date().ToISOString()}] ${req.method} ${req.originalUrl}`);
     console.log('Headers', {

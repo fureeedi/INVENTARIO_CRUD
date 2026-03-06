@@ -17,7 +17,7 @@ const { check } = require('express-validator');
 const { verifyToken } = require('../middlewares/authJwt');
 const checkRole = require('../middlewares/role');
 
-const validateProduct = [
+const validateProduct = [ // array middleware de la validación
     check('name')
         .not().isEmpty()
         .withMessage('El nombre es obligatorio'),
@@ -51,9 +51,13 @@ router.post('/',
     productController.createProduct
 );
 
-router.get('/', productController.getProducts);
+router.get('/', 
+    verifyToken,
+    productController.getProducts);
 
-router.get('/:id', productController.getProductById);
+router.get('/:id', 
+    verifyToken,
+    productController.getProductById);
 
 router.put('/:id',
     verifyToken,

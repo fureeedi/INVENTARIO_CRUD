@@ -58,7 +58,7 @@ const checkDuplicateUsernameOrEmail = async (req, res, next) => {
                 { username: req.body.username },
                 { email: req.body.email }
             ]
-        }) .exec();
+        }) .exec(); // ejecuta query para retornar el dato
 
         // Si encuentra un usuario retornar error
         if (user) {
@@ -113,7 +113,7 @@ const checkRolesExisted = (req, res, next) => {
     // Si el role esta presente en el request
     if (req.body.role) {
 
-        // convertir a array si es string (soporta ambos formatos)
+        // Guarda lo roles en un array soporta un solo rol o multiples en el caso que un usuario tenga varios roles asignados
         const roles = Array.isArray(req.body.role) ? req.body.role : [req.body.role];
 
         // Filtrar roles que no estan en la lista valida

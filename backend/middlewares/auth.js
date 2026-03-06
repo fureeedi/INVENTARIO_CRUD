@@ -4,6 +4,7 @@
  * - Verifica que si el usuario tenga un token valido y carga los datos del usuario en req.user
  */
 
+// codificar y decodificar el token
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -19,9 +20,9 @@ exports.authenticate = async (req, res, next) => {
 
         // Extraer el token del header Bearer <token>
         const token = req.header('Authorization')?.
-        replace('Bearer', '');
+        replace('Bearer', ''); // que el token sea limpio sin prefijos
 
-        // Si no hay token rexhaza la solicitud
+        // Si no hay token rexhaza la solicitud - Que el usuario deba existir en el sistema
         if (!token) {
             return res.status(401).json({
                 success: false,
@@ -33,14 +34,14 @@ exports.authenticate = async (req, res, next) => {
         // Verificar y decodificr el token
         const decoded = jwt.verify(token, process.env.JWR_SECRET);
 
-        // Buscar el usuario en la base de datos
+        // Buscar el usuario en la base de datos - Usuario que entre al sistema y genere token
         const user = await User.findById(decoded.id);
 
         // Si no existe el usuario
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'El usuario no existe'
+                message: 'El usuario no existe o eliminado'
             });
         }
 
@@ -60,6 +61,7 @@ exports.authenticate = async (req, res, next) => {
             message = 'Token invalido o mal formado';            
         }
 
+        // fallo token
         return res.status(401).json({
             success: false,
             message: message,
@@ -85,8 +87,8 @@ exports.authenticate = async (req, res, next) => {
             return res.status(403).json({
                 success: false,
                 message: 'No tienes autorización para realizar esta acción',
-                requiredRoles: roles,
-                currentRole: req.user.role,
+                requiredRoles: roles, // roles que si tienen acceso 
+                currentRole: req.user.role, // usuario que intenta ingresar
                 details: `Tu rol es "${req.user.role}
                 pero se requiere uno de: ${roles.join(', ')}`   
             });

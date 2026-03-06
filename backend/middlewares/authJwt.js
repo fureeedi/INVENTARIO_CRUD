@@ -48,7 +48,7 @@ const config = require('../config/auth.config');
  * req.userEmail = (string) email del usuario
  */
 
-const verifyTokenfn = (req, res, next) => {
+const verifyToken = (req, res, next) => {
     try {
         // Soporta dos formatos Authorization bearer o access-token
         let token = null;
@@ -61,7 +61,7 @@ const verifyTokenfn = (req, res, next) => {
             token = req.headers.authorization.substring(7);
         }
 
-        // Formato x-access-token
+        // Formato x-access-token - formato para el head 
         else if (req.headers['x-access-token']) {
             token = req.headers['x-access-token'];
         }
@@ -74,7 +74,7 @@ const verifyTokenfn = (req, res, next) => {
             });
         }
 
-        // Verificar el token con la clave secreta
+        // Verificar el token con la clave secreta - decodificar el token limpiarlo y compararlo
         const decoded = jwt.verify(token, config.secret);
 
         // Adjuntar información del usuario al request object para que otros middlewares y rutas puedan acceder a ella
@@ -104,12 +104,13 @@ const verifyTokenfn = (req, res, next) => {
  * - Si algo sale mal en su definicion se arroja un error en tiempo de carga del modulo  
  */
 
-if (typeof verifyTokenfn !== 'function') {
+// Guarda el token por un tiempo de carga 
+if (typeof verifyToken !== 'function') {
     console.error('verifyTokenFn no es una funcion valida');
     throw new Error('verifyTokenFn no es una funcion valida');
 }
 
 // Exportar middleware
 module.exports = {
-    verifyTokenfn: verifyTokenfn
+    verifyToken: verifyToken
 }

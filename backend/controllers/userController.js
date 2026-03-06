@@ -33,20 +33,20 @@ const bcrypt = require('bcryptjs');
  */
 
 exports.getAllUsers = async (req, res) => {
-    try {
+    try {                //petición
 
         // Por defecto solo muestra usuarios activos
         const includeInactive = req.query.includeInactive === 'true';
         const activeFilter = includeInactive ? {} : { active : { $ne : false }};
         
-        let users; 
+        let users; //array de los usuarios
         // Control de acceso basado en rol
         if (req.user.role === 'auxiliar') {
             // los auxiliares solo pueden verse a si mismo 
-            users = await User.find({_id: req.UserId, ...activeFilter}).select('-password');
+            users = await User.find({_id: req.UserId, ...activeFilter}).select('-password'); // Que el unico que puede modificar contraseña es el usuario mismo
         } else {
             // Los admin y coordinadores ven todos los usuarios
-            users = await User.find(activeFilter).select('-password');
+            users = await User.find(activeFilter).select('-password'); // incluyendo password - ver
         }
 
         res.status(200).json({
@@ -77,7 +77,7 @@ exports.getAllUsers = async (req, res) => {
 exports.getUserById = async (req, res) => {
     try {
 
-        const user = await user.findById(req.params.id).select('-password');
+        const user = await user.findById(req.params.id).select('-password'); // '-' muestra contraseña
 
         if (!user) {
             return res.status(404).json({
@@ -204,10 +204,10 @@ exports.updateUser = async (req, res) => {
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
             { $set: req.body },
-            {new: true} //Retorna documento actualizado
-        ).select('-password'); // No retornar contraseña
+            { new: true } //Retorna documento actualizado
+         ).select('-password'); // No retornar contraseña
         
-        if (!updatedUser) {
+        if (!updatedUser) { //retorna null 
             return res.status(404).json({
                 success: false,
                 message: 'Usuario no encontrado'
@@ -251,7 +251,7 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     try {
 
-        const hardDelete = req.query.hardDelete === 'true';
+        const isHardDelete = req.query.hardDelete === 'true';
         const userToDelete = await User.findById(req.params.id);
 
         if (!userToDelete) {
@@ -269,7 +269,7 @@ exports.deleteUser = async (req, res) => {
             });
         }
 
-        if (hardDelete) {
+        if (isHardDelete) {
 
             // Eliminar permanentemente de la base de datos
             await User.findByIdAndDelete ( req.params.id );

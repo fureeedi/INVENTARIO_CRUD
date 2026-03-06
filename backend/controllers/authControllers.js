@@ -20,12 +20,13 @@ const config = require('../config/auth.config'); //para obtener la clave secreta
                      //NOTA: Que es? 
 exports.signup = async (req, res) => {
     try {
+
         //Crear nuevo usuario
-        const user = new User({
+        const user = new User({ // Modelo User
             username: req.body.username,
             email: req.body.email,
             password: req.body.password,
-            role: req.body.role || 'auxiliar' //Por defecto, el rol es 'auxiliar' si no se especifica
+            role: req.body.role || 'auxiliar' // Por defecto, el rol es 'auxiliar' si no se especifica
         });
 
         // Guardar en base de datos
@@ -35,20 +36,21 @@ exports.signup = async (req, res) => {
         //Generar token JWT que expira en 24 horas
         const token = jwt.sign(
             {
-                id: savedUser._id,
-                role: savedUser.role,
-                email: savedUser.email
+                id: savedUser._id, // id usuario
+                role: savedUser.role, // rol del usuario
+                username: savedUser.username, // nombre de usuario
+                email: savedUser.email // email del usuario
             },
-            config.secret,
+            config.secret, // variable de entorno - clase secreta
             { expiresIn: config.jwtExpiration }
         );
 
-        //Preparando respuesta sin mostrar la contraseña
-        const userResponse = {
-            id: savedUser._id,
-            username: savedUser.username,
-            email: savedUser.email,
-            role: savedUser.role,
+        // Preparando respuesta sin mostrar la contraseña
+        const userResponse = { // responde o muestra sin mostrar contraseña - solo trae los siguientes datos:
+            id: savedUser._id, // id del usuario 
+            username: savedUser.username, // nombre de usuario
+            email: savedUser.email, // email del usuario
+            role: savedUser.role, // rol del usuario
         };
 
         //POSTMAN 200 AFIRMATIVO - Usuario registrado exitosamente
@@ -72,15 +74,16 @@ exports.signup = async (req, res) => {
  * SIGN IN - Inicio de sesión
  * POST /api/auth/signin - RUTA
  * BODY: { email o usuario, password }
- * Busca el usuario pr email o username en la base de datos
- * Valida la contraseña con bcrypt
- * Si es correcto el token JWT
- * El token se usa para autenticar las futuras solicitudes del usuario 
+ * - Busca el usuario pr email o username en la base de datos
+ * - Valida la contraseña con bcrypt
+ * - Si es correcto el token JWT
+ * - El token se usa para autenticar las futuras solicitudes del usuario 
  */
 
 exports.sigin = async (req, res) => {
     try {
-        //Validar que se envie el email o username
+
+        //Validar que se envie el email o username - &&: para multiples condiciones verderas 
         if (!req.body.email && !req.body.username) {
             return res.status(400).json({
                 success: false,
@@ -98,11 +101,11 @@ exports.sigin = async (req, res) => {
 
         //Buscar usuario por email o username
         const user = await User.FindOne({
-            $or: [ // funciona como un "o" lógico - ARRAY - agarra cualquiera de los dos o los que esten 
+            $or: [ // funciona como un "o" lógico - ARRAY - agarra cualquiera de los dos o los que esten - guardar datos en un array
                 { username: req.body.username },
                 { email: req.body.email }
             ]
-        }).select('+password'); //Include password field
+        }).select('+password'); //Include password field - fuerza a mongo que incluye el campo de password 
 
         //Si no existe el usuario 
         if (!user) {
@@ -114,13 +117,13 @@ exports.sigin = async (req, res) => {
 
         // Verificar que el usuario tenga contraseña
         if (!user.password) {
-            return res.status(400).json({
+            return res.status(500).json({
                 success: false,
                 message: 'El usuario no tiene contraseña!'
             });
         }
 
-        // Comparar la contraseña enviada con el hash almacenado - HASH: Contraseña encriptada
+        // Comparar la contraseña enviada con el hash almacenado - HASH: Contraseña encriptada - trae archivo plano
         const ispasswordValid = await bcrypt.compare(req.body.password, user.password);
 
         if (!ispasswordValid) {
@@ -131,19 +134,18 @@ exports.sigin = async (req, res) => {
         }
 
         //Generar token JWT que expira en 24 horas
-        const token = jwt.sign(
+        const token = jwt.sign( // compara 
             {
                 id: user._id,
                 role: user.role,
                 email: user.email
             },
-
             config.secret,
             { expiresIn: config.jwtExpiration }
         );
 
         // Prepara respuestas sin mostrar la contraseña
-        const UserResponse = {
+        const UserResponse = { // solo muestra datos seguros no contraseña
             id: user._id,
             username: user.username,
             email: user.email,
