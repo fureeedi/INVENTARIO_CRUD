@@ -31,16 +31,16 @@ if(!process.env.JWT_SECRET) { // definida jsonwebtoken
     const userRoutes = require('./routes/userRoutes');
     const productRoutes = require('./routes/productRoutes');
     const categoryRoutes = require('./routes/categoryRoutes');
-    const subcategoryRoutes = require('./routes/subcatedoryRoutes');
+    const subcategoryRoutes = require('./routes/subcategoryRoutes');
     const statisticsRoutes = require('./routes/statisticsRoutes');
 
     // Iniciar express
     const app = express(); // conexiones 
 
     // Cors permite las solicitudes desde el frontend
-    app.use = (cors({
-        origin: 'https//localhost:3001',
-        credencials: true,
+    app.use(cors({
+        origin: 'http//localhost:3001',
+        credentials: true,
     }));
 
     // Morgan registra todas las solicitudes HTTP en consola
@@ -55,7 +55,7 @@ if(!process.env.JWT_SECRET) { // definida jsonwebtoken
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('OK MongoDB conectado'))
-    .cath((error) => {
+    .catch((error) => {
         console.error('Error de conexión a MongoDB:',
         error.message);
         process.exit(1);

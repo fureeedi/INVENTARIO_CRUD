@@ -80,7 +80,7 @@ exports.signup = async (req, res) => {
  * - El token se usa para autenticar las futuras solicitudes del usuario 
  */
 
-exports.sigin = async (req, res) => {
+exports.signin = async (req, res) => {
     try {
 
         //Validar que se envie el email o username - &&: para multiples condiciones verderas 

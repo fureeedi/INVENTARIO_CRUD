@@ -21,7 +21,7 @@
  * 2 - 500: Error de base de datos
  */
 
-const User = require('.../models/User');
+const User = require('../models/User');
 
 /**
  * Verificar que username y email sena unicos

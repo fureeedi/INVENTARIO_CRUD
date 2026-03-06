@@ -49,13 +49,13 @@ const productSchema = new mongoose.Schema({
   // Un producto pertenece a una categoria pero una subcategoria puede tener muchos productos relacion 1 a muchos
 
   category: {
-    type: mongoose.Schema.Type.ObjectId, //tipo especial - referencia documentos - consultar en otra colección por id y que lo use
+    type: mongoose.Schema.Types.ObjectId, //tipo especial - referencia documentos - consultar en otra colección por id y que lo use
     ref: 'category', // puede ser poblado con .populate ('category) - documento de modelo
     required: [true, 'la categoria es requerida']
   },
 
   subcategory: {
-    type: mongoose.Schema.Type.ObjectId, // tipo especial - referencia documentos - consultar en otra colección por id y que lo use
+    type: mongoose.Schema.Types.ObjectId, // tipo especial - referencia documentos - consultar en otra colección por id y que lo use
     ref: 'subcategory', //puede ser poblado con .populate ('subcategory)
     required: [true, 'la subcategoria es requerida']
   },
@@ -63,7 +63,7 @@ const productSchema = new mongoose.Schema({
   //quien creo el producto
   //Referencia de User no requerido
   createdBy: {
-    type: mongoose.Schema.Type.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User' // puede ser poblado para mostrar los usuarios
   },
 
@@ -96,7 +96,7 @@ const productSchema = new mongoose.Schema({
 ignora errrores si el indice mo exite 
 continua con lel guardado normal
  */
-subcategorySchema.post('save', function(error,doc,next) {
+productSchema.post('save', function(error,doc,next) {
 
   // verificar si el error de mongoDB por violacion fr indice unico - que el campo sea unico
   if (error.name === 'MongoServerError' && error.code === 11000) {

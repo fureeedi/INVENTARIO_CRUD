@@ -12,7 +12,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const { verifyToken } = require('../middlewares/authJwt');
-const checkRole = require('../middlewares/role');
+const { checkRole } = require('../middlewares/role');
 
 // Revision de problemas de autenticación y autorización
 
@@ -37,7 +37,6 @@ router.use((req, res, next) => { // no ha ejecutado rutas
 router.post('/',
     verifyToken,
     checkRole('admin', 'coordinador'),
-    validateUser,
     userController.createUser
 );
 
@@ -55,7 +54,6 @@ router.get('/:id',
 router.put('/:id',
     verifyToken,
     checkRole('admin', 'coordinador', 'auxiliar'),
-    validateUser,
     userController.updateUser
 );
 

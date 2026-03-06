@@ -15,7 +15,7 @@ const router = express.Router();
 const productController = require('../controllers/productController');
 const { check } = require('express-validator');
 const { verifyToken } = require('../middlewares/authJwt');
-const checkRole = require('../middlewares/role');
+const { checkRole } = require('../middlewares/role');
 
 const validateProduct = [ // array middleware de la validación
     check('name')

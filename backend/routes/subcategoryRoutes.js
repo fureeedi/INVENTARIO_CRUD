@@ -16,7 +16,7 @@ const router = express.Router();
 const subcategoryController = require('../controllers/subcategoryController');
 const { check } = require('express-validator');
 const { verifyToken } = require('../middlewares/authJwt');
-const checkRole = require('../middlewares/role');
+const { checkRole } = require('../middlewares/role');
 
 const validateSubcategory = [
     check('name')

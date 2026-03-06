@@ -15,6 +15,7 @@ const express = require('express');
 const router = express.Router();
 const categoryController = require('../controllers/categoryController');
 const { verifyToken } = require('../middlewares/authJwt');
+const { checkRole } = require('../middlewares/role');
 
 // RUTAS CRUD
 router.post('/',
