@@ -24,11 +24,19 @@ exports.createCategory = async (req, res) => {
         const { name, description } = req.body;
 
         // Validar de los campos de entrada
-        if (!name || !typeof name === 'string' || name.trim()) {
+        if (!name || typeof name !== 'string' || !name.trim()) {
 
             return res.status(400).json({
                 success: false,
                 message: 'El nombre de la categoria es obligatorio y debe ser texto valido'
+            });
+        }
+
+        if (!description || typeof description !== 'string' || !description.trim()) {
+
+            return res.status(400).json({
+                success: false,
+                message: 'La descripcion de la categoria es obligatoria y debe ser texto valido'
             });
         }
 
@@ -56,7 +64,7 @@ exports.createCategory = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            messsage: 'Categoria creada exitosamente',
+            message: 'Categoria creada exitosamente',
             data: newCategory
         });
 
@@ -98,7 +106,7 @@ exports.getCategories = async (req, res) => {
     const includeInactive = req.query.includeInactive === 'true';
     const activeFilter = includeInactive ? {} : { active : { $ne: false }};
     
-    const categories = await Category.find(activeFilter).scort({ createAt: -1});
+    const categories = await Category.find(activeFilter).sort({ createAt: -1});
     res.status(200).json({
         success: true,
         data: categories
@@ -132,7 +140,7 @@ exports.getCategoryById = async (req, res) => {
     }
 
     res.status(200).json({
-        succes: true,
+        success: true,
         data: category
     });
 
@@ -177,7 +185,7 @@ exports.updateCategory = async (reportError, res) => {
             const existingCategory = await Category.findOne({ name: updateData.name, _id: { $ne: req.params.id}});
 
             // Asegura que el nuevo nombre mo sea el mismo id
-            if (existing) {
+            if (existingCategory) {
                 return res.status(400).json({
                     success: false,
                     messsage: 'Ya existe una categoria con ese nombre'

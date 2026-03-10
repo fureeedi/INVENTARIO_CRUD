@@ -45,7 +45,7 @@ const checkRole = (...allowedRoles) => {
         }
 
         // Verificar si el rol del usuario esta en la lista de roles permitidos
-        if(!allowedRoles.includes(req.uerRole)) {
+        if(!allowedRoles.includes(req.userRole)) {
             return res.status(403).json({
                 success: false,
                 message: `Permisos insuficientes se requiere: ${allowedRoles.join(' o ')}`

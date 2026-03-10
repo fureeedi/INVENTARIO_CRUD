@@ -31,7 +31,7 @@ const subcategorySchema = new mongoose.Schema({
 
   category: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'category', //puede ser poblado con .populate ('category)
+    ref: 'Category', //puede ser poblado con .populate ('category)
     required: [true, 'la categoria es requerida']
   },
 

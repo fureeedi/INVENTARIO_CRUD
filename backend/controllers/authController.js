@@ -100,7 +100,7 @@ exports.signin = async (req, res) => {
         }
 
         //Buscar usuario por email o username
-        const user = await User.FindOne({
+        const user = await User.findOne({
             $or: [ // funciona como un "o" lógico - ARRAY - agarra cualquiera de los dos o los que esten - guardar datos en un array
                 { username: req.body.username },
                 { email: req.body.email }
@@ -109,7 +109,7 @@ exports.signin = async (req, res) => {
 
         //Si no existe el usuario 
         if (!user) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
                 message: 'Usuario no encontrado'
             });
@@ -124,9 +124,9 @@ exports.signin = async (req, res) => {
         }
 
         // Comparar la contraseña enviada con el hash almacenado - HASH: Contraseña encriptada - trae archivo plano
-        const ispasswordValid = await bcrypt.compare(req.body.password, user.password);
+        const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
 
-        if (!ispasswordValid) {
+        if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
                 message: 'Contraseña incorrecta!'
@@ -145,7 +145,7 @@ exports.signin = async (req, res) => {
         );
 
         // Prepara respuestas sin mostrar la contraseña
-        const UserResponse = { // solo muestra datos seguros no contraseña
+        const userResponse = { // solo muestra datos seguros no contraseña
             id: user._id,
             username: user.username,
             email: user.email,
@@ -155,9 +155,9 @@ exports.signin = async (req, res) => {
         //POSTMAN 200 AFIRMATIVO - Usuario registrado exitosamente
         res.status(200).json({
             success: true,
-            message: 'Inicio de sesi+on exitoso!',
+            message: 'Inicio de sesion exitoso!',
             token: token,
-            user: UserResponse
+            user: userResponse
         });
 
     } catch (error) {

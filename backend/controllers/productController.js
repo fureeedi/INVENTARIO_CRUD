@@ -29,13 +29,13 @@ const Product = require('../models/Product');
 exports.createProduct = async (req, res) => {
     try {
 
-        const { name, description, price, stock, category, subcategory } = req.body;
+        const { name, descripcion, price, stock, category, subcategory } = req.body;
 
         // ============= VALIDACIONES =============
 
         // Validar que todos los campos requeridos esten presentes
         // Diferencia en campos
-        if (!name || !description || !price || !stock || !category || !subcategory ) {
+        if (!name || !descripcion || !price || !stock || !category || !subcategory ) {
 
             // campos incompletos
             return res.status(400).json({
@@ -71,7 +71,7 @@ exports.createProduct = async (req, res) => {
         // ========= CREAR PRODUCTO =========
         const product = new Product({
             name,
-            description,
+            descripcion,
             price,
             stock,
             category,

@@ -19,14 +19,12 @@ const { checkRole } = require('../middlewares/role');
 // llama información
 router.use((req, res, next) => { // no ha ejecutado rutas
     console.log('\n=== DIAGNOSTICO FR RUTA ===');
-    console.log(`[${new Date().ToISOString()}] ${req.method} ${req.originalUrl}`);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
     console.log('Headers', {
         'Authorization': req.headers.authorization ?
         '***' + req.headers.authorization.slice(8) : 
         null,
-        'x-access-token' : req.headers
-        ['x-access-token'] ? '***' + req.headers
-        ['x-access-token'].slice(8) : null, 
+        'x-access-token' : req.headers['x-access-token'] ? '***' + req.headers['x-access-token'].slice(8) : null, 
         'user-agent': req.headers['user-agent']
     });
 

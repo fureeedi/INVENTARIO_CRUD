@@ -26,7 +26,7 @@ const Category = require('../models/Category');
 
 exports.createSubcategory = async (req, res) => {
     try {
-        const { name, description, category, } = req.body;
+        const { name, description, category } = req.body;
 
         // Validar que la categoria padre exista
         const parentCategory = await Category.findById(category);
@@ -41,7 +41,7 @@ exports.createSubcategory = async (req, res) => {
         // Crear la nueva Subcategoria
         const newSubcategory = new Subcategory({
             name: name.trim(), // Guardar el nombre sin espacios en blanco al crear la categoria
-            description: description.trim(), // Guardar la descripcion sin espacios en blanco al crear la categoria
+            descripcion: description.trim(), // Guardar la descripcion sin espacios en blanco al crear la categoria
             category: category
         });
 
@@ -158,7 +158,7 @@ exports.getSubcategoryById = async (req, res) => {
 exports.updateSubcategory = async (req, res) => {
     try {
 
-        const { name, description, category} = req.body;
+        const { name, descripcion, category} = req.body;
 
         // Verificar si cambia la categoria padre 
 
@@ -173,7 +173,7 @@ exports.updateSubcategory = async (req, res) => {
         }
 
         // Construir el objeto de actualización solo con campos enviados 
-        const updateSubcategory = await Subcategory.findByIdAndUpdate(req.params.id, { name: name ? name.trim() : undefined, description: description ? description.trim() : undefined, category}, { new: true, runValidators: true});
+        const updateSubcategory = await Subcategory.findByIdAndUpdate(req.params.id, { name: name ? name.trim() : undefined, descripcion: descripcion ? descripcion.trim() : undefined, category}, { new: true, runValidators: true});
 
         if (!updateSubcategory) {
             return res.status(404).json({

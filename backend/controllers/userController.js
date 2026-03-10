@@ -41,9 +41,9 @@ exports.getAllUsers = async (req, res) => {
         
         let users; //array de los usuarios
         // Control de acceso basado en rol
-        if (req.user.role === 'auxiliar') {
+        if (req.userRole === 'auxiliar') {
             // los auxiliares solo pueden verse a si mismo 
-            users = await User.find({_id: req.UserId, ...activeFilter}).select('-password'); // Que el unico que puede modificar contraseña es el usuario mismo
+            users = await User.find({_id: req.userId, ...activeFilter}).select('-password'); // Que el unico que puede modificar contraseña es el usuario mismo
         } else {
             // Los admin y coordinadores ven todos los usuarios
             users = await User.find(activeFilter).select('-password'); // incluyendo password - ver
@@ -201,13 +201,13 @@ exports.updateUser = async (req, res) => {
         }
 
         // Actualizar usuario
-        const updatedUser = await User.findByIdAndUpdate(
+        const updateUser = await User.findByIdAndUpdate(
             req.params.id,
             { $set: req.body },
             { new: true } //Retorna documento actualizado
          ).select('-password'); // No retornar contraseña
         
-        if (!updatedUser) { //retorna null 
+        if (!updateUser) { //retorna null 
             return res.status(404).json({
                 success: false,
                 message: 'Usuario no encontrado'
@@ -217,7 +217,7 @@ exports.updateUser = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Usuario actualizado correctamente',
-            user: updatedUser
+            user: updateUser
         });
 
     } catch (error) {
