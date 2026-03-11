@@ -24,11 +24,19 @@ exports.createCategory = async (req, res) => {
         const { name, description } = req.body;
 
         // Validar de los campos de entrada
-        if (!name || !typeof name === 'string' || name.trim()) {
+        if (!name || !typeof name !== 'string' || !name.trim()) {
 
             return res.status(400).json({
                 success: false,
                 message: 'El nombre de la categoria es obligatorio y debe ser texto valido'
+            });
+        }
+
+        if (!description || !typeof description !== 'string' || !description.trim()) {
+
+            return res.status(400).json({
+                success: false,
+                message: 'La descripcion de la categoria es obligatoria y debe ser texto valido'
             });
         }
 
@@ -56,7 +64,7 @@ exports.createCategory = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            messsage: 'Categoria creada exitosamente',
+            message: 'Categoria creada exitosamente',
             data: newCategory
         });
 
@@ -133,7 +141,7 @@ exports.getCategoryById = async (req, res) => {
     }
 
     res.status(200).json({
-        succes: true,
+        success: true,
         data: category
     });
 
@@ -178,7 +186,7 @@ exports.updateCategory = async (reportError, res) => {
             const existingCategory = await Category.findOne({ name: updateData.name, _id: { $ne: req.params.id}});
 
             // Asegura que el nuevo nombre mo sea el mismo id
-            if (existing) {
+            if (existingCategory) {
                 return res.status(400).json({
                     success: false,
                     messsage: 'Ya existe una categoria con ese nombre'
@@ -191,9 +199,9 @@ exports.updateCategory = async (reportError, res) => {
         }
 
         // Actualizar la categoria en la base de datos
-        const updatedCategory = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true});
+        const updateCategory = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true});
 
-        if (!updatedCategory) {
+        if (!updateCategory) {
             return res.status(404).json({
                 success: false, 
                 message: 'Categoria no encontrada',
@@ -203,7 +211,7 @@ exports.updateCategory = async (reportError, res) => {
         res.status(200).json({
             success: false,
             message: 'Categoria actualizada exitosamente',
-            data: updatedCategory
+            data: updateCategory
         });
 
     }catch (error) {

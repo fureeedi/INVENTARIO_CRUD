@@ -15,7 +15,7 @@ const Subcategory = require('./models/Subcategory');
 const Product = require('./models/Product');
 
 async function seedData() { // Función async que inserta datos de ejemplo en la BD
-  await mongoose.connect(dbConfig.url); // Conecta a MongoDB usando la URL de dbConfig (MongoDB driver 4 no requiere useNewUrlParser/useUnifiedTopology)
+  await mongoose.connect(dbConfig.url, { useNewUrlParser: true, useUnifiedTopology: true }); // Conecta a MongoDB usando la URL de dbConfig (MongoDB driver 4 no requiere useNewUrlParser/useUnifiedTopology)
 
   // Limpiar datos previos
   await Product.deleteMany({}); // Elimina TODOS los productos existentes (tabla limpia antes de insertar)

@@ -26,7 +26,7 @@ const Category = require('../models/Category');
 
 exports.createSubcategory = async (req, res) => {
     try {
-        const { name, description, category, } = req.body;
+        const { name, description, category } = req.body;
 
         // Validar que la categoria padre exista
         const parentCategory = await Category.findById(category);
@@ -158,7 +158,7 @@ exports.getSubcategoryById = async (req, res) => {
 exports.updateSubcategory = async (req, res) => {
     try {
 
-        const { name, description, category} = req.body;
+        const { name, description, category } = req.body;
 
         // Verificar si cambia la categoria padre 
 

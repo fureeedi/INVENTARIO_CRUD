@@ -220,6 +220,7 @@ exports.getProductById = async (req, res) => {
  * Retorna: Producto actualizado 
  */
 
+
 exports.updateProduct = async (req, res) => {
     try { 
         const { name, description, price, stock, category, subcategory } = req.body; // no esta imgagen ya que es un dato por defecto no obligatorio - null

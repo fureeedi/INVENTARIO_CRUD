@@ -18,7 +18,7 @@ const categorySchema = new mongoose.Schema({
   },
 
   // Descripcion dela categoria - requerida 
-  descripcion:{
+  description:{
     type: String,
     required:[true, 'la categoria es requerida'],
     trim: true //Elimina espacios 
@@ -88,4 +88,4 @@ categorySchema.index({name: 1}, {
 });
 
 //Exportar el modelo 
-module.exports = mongoose.model('category', categorySchema)
+module.exports = mongoose.model('Category', categorySchema)
