@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema({
   },
 
   // Descripcion del producto - requerida 
-  descripcion:{
+  description:{
     type: String,
     required:[true, 'la descripcion es requerida'],
     trim: true //Elimina espacios al inicio y final

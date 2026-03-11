@@ -20,7 +20,7 @@ const subcategorySchema = new mongoose.Schema({
   },
 
   // Descripcion dela subcategoria - requerida 
-  descripcion:{
+  description:{
     type: String,
     required:[true, 'la descripcion es requerida'],
     trim: true //Elimina espacios 

@@ -77,7 +77,7 @@ exports.getAllUsers = async (req, res) => {
 exports.getUserById = async (req, res) => {
     try {
 
-        const user = await user.findById(req.params.id).select('-password'); // '-' muestra contraseña
+        const user = await User.findById(req.params.id).select('-password'); // '-' muestra contraseña
 
         if (!user) {
             return res.status(404).json({
@@ -96,7 +96,7 @@ exports.getUserById = async (req, res) => {
         }
 
         // Los coordinadores no pueden ver a los administradores
-        if (req.user.Role === 'coordinador' && role === 'admin') {
+        if (req.user.Role === 'coordinador' && user.role === 'admin') {
             return res.status(403).json({
                 success: false,
                 message: 'No puedes ver usuarios admin'
@@ -134,7 +134,7 @@ exports.createUser = async (req, res) => {
         const { username, email, password, role } = req.body;
 
         // Crear usuario nuevo
-        const user = new User ({
+        const newUser = new User ({
             username,
             email,
             password,
@@ -142,7 +142,7 @@ exports.createUser = async (req, res) => {
         });
 
         // Guardar usuario en DB
-        const savedUser = await user.save();
+        const savedUser = await newUser.save();
 
         res.status(201).json({
             success: true,

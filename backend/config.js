@@ -11,7 +11,7 @@
 module.exports = {
 
     // configuración de JWT
-    secret: process.env.JWT_SECRET || ' tusecretoparalostokens',
+    secret: process.env.JWT_SECRET || 'tusecretoparalostokens',
     TOKEN_EXPIRATION: process.env.JWT_EXPIRATION || '24H',
 
     // Configuración de base de datos

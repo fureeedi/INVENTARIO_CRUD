@@ -101,16 +101,17 @@ exports.createCategory = async (req, res) => {
 
 exports.getCategories = async (req, res) => {
     try {
-    //por defecto solo se muestran las categorias activas
+    // Por defecto solo se muestran las categorias activas
     // IncludeInactive = true permite ver todas las categorias incluyendo las desactivadas
     const includeInactive = req.query.includeInactive === 'true';
     const activeFilter = includeInactive ? {} : { active : { $ne: false }};
-    
     const categories = await Category.find(activeFilter).sort({ createAt: -1});
+
     res.status(200).json({
         success: true,
         data: categories
     });
+
 } catch (error) {
     console.error('Error en getCategories', error);
     res.status(500).json({
@@ -198,13 +199,12 @@ exports.updateCategory = async (reportError, res) => {
         }
 
         // Actualizar la categoria en la base de datos
-        const updatedCategory = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true});
+        const updatedCategory = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
         if (!updatedCategory) {
             return res.status(404).json({
                 success: false, 
                 message: 'Categoria no encontrada',
-                data: updatedCategory
             });
         }
 

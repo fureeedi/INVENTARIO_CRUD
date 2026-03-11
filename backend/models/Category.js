@@ -81,7 +81,7 @@ categorySchema.pre('save', async function(next) {
  * aumentar la velocidad de las busquedas 
  */
 
-categorySchema.index({namr: 1}, {
+categorySchema.index({name: 1}, {
   unique: true,
   name: 'name_1' // nombre explicito para eitar conflictos
 

@@ -22,7 +22,7 @@ exports.signup = async (req, res) => {
     try {
 
         //Crear nuevo usuario
-        const user = new User({ // Modelo User
+        const user = new User ({ // Modelo User
             username: req.body.username,
             email: req.body.email,
             password: req.body.password,
@@ -163,7 +163,8 @@ exports.signin = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: 'Error en el inicio de sesión!'
+            message: 'Error en el inicio de sesión!',
+            error: error.message
         });
     }
 };
