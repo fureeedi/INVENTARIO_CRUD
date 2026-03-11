@@ -50,13 +50,13 @@ const productSchema = new mongoose.Schema({
 
   category: {
     type: mongoose.Schema.Types.ObjectId, //tipo especial - referencia documentos - consultar en otra colección por id y que lo use
-    ref: 'Category', // puede ser poblado con .populate ('category) - documento de modelo
+    ref: 'category', // puede ser poblado con .populate ('category) - documento de modelo
     required: [true, 'la categoria es requerida']
   },
 
   subcategory: {
     type: mongoose.Schema.Types.ObjectId, // tipo especial - referencia documentos - consultar en otra colección por id y que lo use
-    ref: 'Subcategory', //puede ser poblado con .populate ('subcategory)
+    ref: 'subcategory', //puede ser poblado con .populate ('subcategory)
     required: [true, 'la subcategoria es requerida']
   },
 

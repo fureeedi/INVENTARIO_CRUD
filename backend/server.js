@@ -39,7 +39,7 @@ if(!process.env.JWT_SECRET) { // definida jsonwebtoken
 
     // Cors permite las solicitudes desde el frontend
     app.use(cors({
-        origin: 'http://localhost:3000',
+        origin: 'http//localhost:3001',
         credentials: true,
     }));
 

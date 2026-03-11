@@ -48,14 +48,14 @@ const config = require('../config/auth.config');
  * req.userEmail = (string) email del usuario
  */
 
-const verifyTokenFn = (req, res, next) => {
+const verifyToken = (req, res, next) => {
     try {
         // Soporta dos formatos Authorization bearer o access-token
         let token = null;
 
-        // Formato Authorization
+        // Fornato Authorization
         if (req.headers.authorization && req.headers.
-            authorization.startsWith('Bearer')) {
+            authorization.startsWith('bearer')) {
 
             // Extraer token quitando "Bearer"
             token = req.headers.authorization.substring(7);
@@ -105,12 +105,12 @@ const verifyTokenFn = (req, res, next) => {
  */
 
 // Guarda el token por un tiempo de carga 
-if (typeof verifyTokenFn !== 'function') {
+if (typeof verifyToken !== 'function') {
     console.error('verifyTokenFn no es una funcion valida');
     throw new Error('verifyTokenFn no es una funcion valida');
 }
 
 // Exportar middleware
 module.exports = {
-    verifyToken: verifyTokenFn
+    verifyToken: verifyToken
 }
