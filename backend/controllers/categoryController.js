@@ -191,7 +191,7 @@ exports.updateCategory = async (reportError, res) => {
         }
 
         // Actualizar la categoria en la base de datos
-        const updatedCategory = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        const updatedCategory = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true});
 
         if (!updatedCategory) {
             return res.status(404).json({
