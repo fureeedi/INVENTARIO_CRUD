@@ -1,120 +1,118 @@
-/** 
- * Modelo de producto MONGODB
- * Define la estructura deL producto
- * El poducto depende de una subcategoria depende de una categoria
- * La subcategoria depende de una categoria
- * Muchos productos pueden pertenecer a una subcategoria
- * Tiene relacion un user para ver quien creo o modifico el producto
- * 
+/**
+ * modelo de producto MONGODB
+ * Define la estructura del producto
+ * el producto depende de una subcategoria depende de una categoria
+ * muchos productos pueden pertenecer a una subcategoria 
+ * tiene relacion un user para ver quien creo el producto
+ * soporte de imagenes (array de url)
+ * validacion de valores numericos (no negativos)
  */
 
-const mongoose = require('mongoose');
- 
-//Campos de la tabla producto 
+const mongoose =require('mongoose');
 
+    //campos de la tabla producto
+    
 const productSchema = new mongoose.Schema({
-  //Nombre del producto unico y requerido
-  name:{
-    type: String, // permite caracter especial
-    required: [true, 'el nombre es obligatorio'],
-    unique: true,// no pueden haber dos productos con el mismo nombre - indice unico en Mongo
-    trim: true // elimina espacios en blanco al inicio y al final 
-  },
+    //nombre del producto unico y requerido
+    name:{
+        type: String,
+        require: [true, 'El nombre es obligatorio'],
+        unique: true, // no pueden haber dos productos con el mismo nombre
+        trim: true // eliminar espacion al inicio y final
+    },
+    
+    //Descripcion del producto - requerida
+    description: {
+        type: String,
+        require: [true, 'La descripcion es requerida'],
+        trim: true
+    },
+    
+    
+    //Precio en unidades monetarias
+    //No puede ser negativo
+    price: {
+        type: Number,
+        require: [true, 'El precio es obligatorio'],
+        min:[0, 'El precio no puede ser negativo']
+    },
 
-  // Descripcion del producto - requerida 
-  description:{
-    type: String,
-    required:[true, 'la descripcion es requerida'],
-    trim: true //Elimina espacios al inicio y final
-  },
+    // cantidad de stock
+    //no puede ser negativo
+    stock: {
+        type: Number,
+        require: [true, 'El stock es obligatorio'],
+        min:[0, 'El stock no puede ser negativo']
+    },
 
-  // precio en unidades monetarias
-  // no puede ser negativo
-  price:{
-    type: Number,
-    required:[true, 'la precio es obligatorio'],
-    min: [0, 'el precio no puede ser negativo'] // validación - rechaza valores inferiores a cero - en Mongo
-  },
+    //Categoria padre, esta producto pertenece a una categoria 
+    //relacion 1 - muchos. Una categoria puede tener muchas productos
+    //un producto pertenece a una subcategoria pero una subcategoria puede tener muchos productos relacion 1 a muchos
+    
 
-  // cantidad de stock
-  // no puede ser negativa
-  stock:{
-    type: Number,
-    required:[true, 'la stock es obligatorio'],
-    min: [0, 'el stock no puede ser negativo'] // validación - rechaza valores inferiores a cero - en Mongo
-  },
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category', // puede ser poblado con .populate ('category')
+        required: [true, 'La categoria es requerida']
+    },
 
-  // categoria padre esta subcategoria pertenece a una categoria 
-  // relacion 1 - muchos una categoria puede tener muchas subcategorias
-  // Un producto pertenece a una categoria pero una subcategoria puede tener muchos productos relacion 1 a muchos
+     subcategory: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subcategory', // puede ser poblado con .populate ('subcategory')
+        required: [true, 'La subcategoria es requerida']
+    },
 
-  category: {
-    type: mongoose.Schema.Types.ObjectId, //tipo especial - referencia documentos - consultar en otra colección por id y que lo use
-    ref: 'Category', // puede ser poblado con .populate ('category) - documento de modelo
-    required: [true, 'la categoria es requerida']
-  },
+    // quien creo el producto 
+    //referencia de User no requerido
+    createdBy:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User' //puede ser poblado para mostrar los usuarios
+    },
 
-  subcategory: {
-    type: mongoose.Schema.Types.ObjectId, // tipo especial - referencia documentos - consultar en otra colección por id y que lo use
-    ref: 'Subcategory', //puede ser poblado con .populate ('subcategory)
-    required: [true, 'la subcategoria es requerida']
-  },
+    //Array de urls de imagenes de productos
+    images: [{
+        type: String, //url de la imagen
+    }],
 
-  //quien creo el producto
-  //Referencia de User no requerido
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User' // puede ser poblado para mostrar los usuarios
-  },
-
-  // Array de urls de imagenes del productos
-  images: [{
-    type: String, //url de la imagen
-  }],
-
-  //Active y desactiva la categoria pero no la elimina
-  active: {
-    type: Boolean,
-    default: true
-  }
-
-},{
-  timestamps: true, //agregar createdAt y updateAT automaticamente
-  versionKey: false, // No incluir campos _v - no guarda directamente - guarda directamente en el cache de mongo - al llamar no trae los datos
+    //Active, desactiva el producto pero no la elimina
+    active: {
+        type: Boolean,
+        default: true,
+    }
+}, {
+    timestamps: true, // agrega createdAt y updateAt automaticamente
+    versinoKey: false, // no incluir campos __V
 });
 
 /**
  * MIDDLEWARE PRE-SAVE
  * Limpia indices duplicados
- * Mongodb a veces crear multiples indices con el mismo nombre 
- * esti causa conflictos al intentar dropIndex o recrear indices
- * este middleware limpia los indices problematicos 
+ * Mongodb aveces crea multiples indices con el mismo nombre
+ * esto causa conflictos al intentar dropIndex o recrear indices
+ * este middleware limpia los indices problematicos
  * proceso
- * 1 obtiene una lista de todos los indices de la coleccion 
-* 2 busca si existe indice con nombre de name_1 (antiguo o duplicado)
-*si existe lo elimina antes de nuevas operaciones 
-ignora errrores si el indice mo exite 
-continua con lel guardado normal
+ * 1 obtiene una lista de todos los indices de la coleccion
+ * 2 busca si existe el indice con nombre name_1 (antiguo o duplicado)
+ * si existe lo elimina antes de nuevas operaciones
+ * ignora errores si el indice no existe
+ * continua con el guardado normal
  */
-productSchema.post('save', function(error,doc,next) {
-
-  // verificar si el error de mongoDB por violacion fr indice unico - que el campo sea unico
-  if (error.name === 'MongoServerError' && error.code === 11000) {
-      return next(new Error('ya existe un producto con ese nombre'))
+productSchema.post('save', function(error, doc, next) {
+        //verificar si es error de mongoDB por violacion de indice unico
+    if (error.name === 'MongoServerError' && error.code === 11000){
+            return next(new Error('Ya existe un producto con ese nombre'));  
     } 
-
-    //pasar el error tal como es
+    // pasar el error tal como es
     next(error);
 });
 
 /**
  * crear indice unico
  * 
- * Mongo rechazara cualquier intentyo de insertar un documento con un valor de name que ya exista
- * aumentar la velocidad de las busquedas 
+ * mongo rechazara cualquier intento de insertar o actualizar un documento con un valor de name ya que exista
+ * aumenta la velocidad de las busquedas
  */
 
-
-
-//Exportar el modelo - exporta directamente a los controladores
+//exportar el modelo
 module.exports = mongoose.model('Product', productSchema);
+

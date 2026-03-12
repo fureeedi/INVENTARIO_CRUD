@@ -1,51 +1,55 @@
-/**
- * CONTROLADOR DE ESTADISTICAS
- * GET /api/statistics
- * Auth Bearer token requerido
- * 
- * Estadisticas disponibles:
- * 1 - Total de usuarios
- * 2 - Total de productos
- * 3 - Total de categorias
- * 4 - Total de subcategorias
- */
+/*
+Controlador de estadisticas
+GET /api/statistics
+auth token requerido
+estadisticas disponibles:
+total de usuarios
+total de productos
+total de categorias
+total de subcategorias
+*/
 
-const User = require('../models/User')
-const Product = require('../models/Product')
-const Category = require('../models/Category')
-const Subcategory = require('../models/Subcategory')
+const User = require('../models/User');
+const Product = require('../models/Product');
+const Category = require('../models/Category');
+const Subcategory = require('../models/Subcategory');
 
-/**
- * 
- */
+/*
+respuestas
+200: estadisticas obtenidas
+500: error de servidor
+*/
 
 const getStatistics = async (req, res) => {
     try {
-
-        // Ejecuta todas las querys en paralelo
-        const [totalUsers, totalProducts, totalCategories, totalSubcategories] = await 
-        Promise.all([
-            User.countDocuments(), //Contar el total de usuarios
-            Product.countDocuments(), //Contar el total de productos
-            Category.countDocuments(), //Contar el total de categorias
-            Subcategory.countDocuments(), //Contar el total de subcategorias
+        //ejecuta todos los requerimientos en paralelo
+        const[totalUsers, totalProducts, totalCategories, totalSubcategories] = await Promise.all([
+            User.countDocuments(), //contar usuarios
+            Product.countDocuments(), //contar productos
+            Category.countDocuments(), //contar categorias
+            Subcategory.countDocuments() //contar subcategorias
         ]);
 
-        // Retornar las estadisticas
-        res.json({
-            totalUsers,
-            totalProducts,
-            totalCategories,
-            totalSubcategories,
+        //retorna las estadisticas
+        res.status(200).json({
+            success: true,
+            data: {
+                totalUsers,
+                totalProducts,
+                totalCategories,
+                totalSubcategories
+            }
         });
-
     } catch (error) {
-        console.error('Error en getStatistics', error);
+        console.error('Error en getStatistics:', error.message);
         res.status(500).json({
             success: false,
-            message: 'Error al obtener las estadisticas',
-            message: error.message
+            message: 'Error al obtener estadisticas',
+            error: error.message
         });
     }
 };
-module.exports = {getStatistics}
+
+module.exports = {
+    getStatistics
+};

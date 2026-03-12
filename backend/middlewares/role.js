@@ -1,82 +1,80 @@
-/**
- * MIDDLEWARE control de roles de usuario
- * 
- * - Sirve para verificar qie el usuario autenticado tiene permisos necesarios para acceder a una ruta especifica
- * 
- * function factory checkRole() : Permite especificar los roles permitidos
- * function Helper - para roles especificos isAdmin, isCoordinator, isAuxiliar
- * Requiere que verifyTokenFn se haya ejecutado primero
- * 
- * FLUJO:
- * 1 - Verifica que req.userRole exista
- * 2 - Compara req.userRole contra la lista de roles permitidos
- * 3 - Si esta en lusta continua
- * 4 - Si no esta en la lista retorna 403 Forbidden con mensaje de acceso descriptivo
- * 5 - Si no existe userRole retorna 401 (Token corrupto)
- * 
- * USO:
- * checkRole('admin') solo admin
- * checkRole('admin', 'coordinator') admin y coordinador co permisos
- * checkRole('admin', 'coordinator', 'auxiliar') todos con permisos
- * 
- * ROLES DEL SISTEMA:
- * - admin : acceso total
- * - coordinador : no puede eliminar ni gestionar usuarios
- * - auxiliar : acceso limitado a tareas especificas  
- */
+/*
+middleware control de roles de usuario
 
-/**
- * factory function checkRole
- * - Retorna middleware que verifica que el usuario tiene uno de los roles permitidos
- * @param {...string} allowedRoles - Roles permitidos en el sistema
- * @returns {function} - middleware de express 
- */
+sirve para verificar que el usuario autenticado tiene permisos necesarios para acceder a una ruta especifica
+
+funcion factory checkRole() permite especificar los roles permitidos 
+
+funcion Helper para roles especificos isAdmin, isCdoordinador, isAuxiliar
+
+requiere que verifyToken se haya ejecutado primero 
+
+verifica que req.userRole exista
+compara req.userRole contra lista de roles permitidos
+
+si esta lista continua
+si no esta en la lista restona 403  Forbidden con mensaje descriptivo
+si no existe userRole retorna 401 (token corructo)
+
+uso :
+checkRole('admin') solo admin
+checkRole('admin', 'coordinador', 'auxiliar') todos con permisos
+
+roles del sistema:
+admin acceso total
+coordinador  no puede eliminar ni gestionar usuarios
+auxiliar acceso limitado a tareas especificas
+*/
+
+/*
+factory funtion checkRole
+retorna middleware que verifica si el usuario tiene uno de los roles permitidos
+// @param(...string) allowedRoles - roles permitidos en el sistema
+// @returns {function} middleware de express
+
+*/
 
 const checkRole = (...allowedRoles) => {
     return (req, res, next) => {
-
-        // Validar que el usuario fue autenticado y verifyToken ejecutado
-        // req.userRole es establecido por verifyTokenFn middleware 
+        //verificar que el usuario fue atenticado y verifyToken ejecutado
+        //req, userRole es establecido por verifyToken middleware
         if (!req.userRole) {
             return res.status(401).json({
-                success: false,
-                message: 'Token invalido o expirado'
+                success:false,
+                message: 'token invalido'
+
             });
         }
-
-        // Verificar si el rol del usuario esta en la lista de roles permitidos
-        if(!allowedRoles.includes(req.userRole)) {
+        //verificar si el rol del usuario está en la lista de roles permitidos
+        if (!allowedRoles.includes(req.userRole)) {
             return res.status(403).json({
-                success: false,
-                message: `Permisos insuficientes se requiere: ${allowedRoles.join(' o ')}`
+                success:false,
+                message: `Prermisos insuficientes se requiere ${allowedRoles.join(" o ")}`
             });
         }
-
-        //Usuario 
-        next();
-    }
+        next(); //continuar con la ejecución de la ruta si el rol es válido
+   }  
 };
 
-// Funciones helper para roles especificos
-// Verifica que el usuario es admin
-// USO: router.delete('/admin-only'. verifyToken, isAdmin, controller.method)
+//funciones helper para roles especificos
+//verifica que el usuario es admin
+//uso: router.delete('/admin-only'. verifyToken, isAdmin, controller.method)
 
-// Verifica si el usuario es Admin
-const isAdmin = (req, res, next) => {
-    return checkRole('admin')(req, res, next);
+const isAdmin = (req, res, next) =>{
+    return checkRole('admin')(req,res,next)
 };
 
-// Verifica si el usuario es Coordinador
-const isCoordinador = (req, res, next) => {
-    return checkRole('coordinador')(req, res, next);
-};
+//verificar si el usuario es coordinador
+const isCoordinador = (req,res,next) =>{
+    return checkRole('coordinador')(req,res,next)
+}
 
-// Verifica si el usuario es Auxiliar
-const isAuxiliar = (req, res, next) => {
-    return checkRole('auxiliar')(req, res, next);
-};
+//verificar si el usuario es auxiliar
+const isAuxiliar = (req,res,next) =>{
+    return checkRole('auxiliar')(req,res,next)
+}
 
-// Modulos a exportar
+//modulo a exportar
 module.exports = {
     checkRole,
     isAdmin,

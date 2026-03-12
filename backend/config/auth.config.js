@@ -1,13 +1,17 @@
-//Carga las varibales de entorno desde el archivo .env
+//carga de variables de entorno desde .env 
 require('dotenv').config();
 
-module.exports = {
-    //clave firma para los token de jwt
-    secret: process.env.SECRET_KEY || "tusecretoparalostokens",
+module.exports= {
+    //clave para firmar los tokens de jwt
+    secret: process.env.JWT_SECRET || "tusecretoparalostokens",
+
     //tiempo de expiracion del token en segundos
-    jwtExpiration: process.env.JWT_EXPIRATION || 86400, // 24 HORAS
-    //tiempo de expiracion de refrescar token 
-    jwtRefresh: 6048000, // 7 DIAS
-    //numero de rondas para encriptar la contraseña - por primera vez
+    jwtExpiration: process.env.JWT_EXPIRATION ||
+    86400, //24 HORAS
+    
+    //Tiempo de expiracion de refrescar el token
+    jwtRefresh: 6048000, // 7 Dias
+    
+    //Numero de rondas para encriptar la contraseña
     slatRounds: process.env.SALT_ROUNDS || 8
 };

@@ -1,116 +1,115 @@
-/**
- * MIDDLEWARES DE VERIFICACIÓN JWT
- * - Middleware para verificar y validar tokens JWT en las solicitudes
- * - Se usa en todas las rutas protegidas para autenticar usuarios
- * - CARACTERISTICAS: 
- *      - Soporta dos formatos de token:
- *          - 1: Authorization: Bearer <token> (Estandar REST)
- *          - 2: x-access-token (header personalizado)
- * 
- * - Extrae información del token (id, role, email)
- * - La adjunta a req.uderId req.userRole req.userEmail para uso de los controladores
- * - Manejo de errores con codigos 403/401 apropiados
- * 
- * FLUJO:
- * 1- Lee el header Authorization o x-access-token
- * 2- Extrae el token (quita el Bearer si es necesario)
- * 3- Verifica el token con JWT_SECRET
- * 4- Si es valido continua al siguiente middleware
- * 5- Si es invalido retorna 401 Unauthorized
- * 6- Si falta el token retorna 403 Forbidden
- * 
- * VALIDACIÓN DEL TOKEN
- * 1- Verifica firma criptografica con JWT_SECRET
- * 2- Comprueba que no haya expirado
- * 3- Extrae payload {id, rol, email}
- */
+/*
+middleware de verficacion de token JWT
+middleware para verificar y validar tokens jwt en las solicitudes
+se usa en todas las rutas protegidas ara autenticar usuarios
+caracteristicas:
+soporta dos formatos de token
+1 authorization: Bearer <token> (estandar REST )
+2 x-access-token: <token> (header personalizado)
+extrae informacion del token (id  role email)
+la adjunta a req.userId req.userRole req.userEmail para uso en controladores
+manejo de errores con codigos 403/401 y mensajes claros
+flujo:
+1. lee el header authorization o x-access-token
+2. extrae el token (quita el bearer si es necesario)   
+3. verifica el token con la JWT_SECRET
+4. si es valido continua al siguiente middleware o controlador
+5. si es invalido  retorna 401 con mensaje de error
+6. si falta retorna 403  Forbidden con mensaje de error
+
+validacion del token
+1. verifica firma criptografica con JWT_SECRET
+2. comprueba que no haya expirado (exp)
+3. extrae el payload (id, role, email)
+
+*/
 
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 const config = require('../config/auth.config');
 
-/**
- * VERIFICAR TOKEN
- * Funcionalidad:
- * - Busca el token en las ubicaciones posibles (orden de procedencia)
- * 1 - header Authorization con formato Bearer <token> - trae token
- * 2 - header x-access-token - trae token mas informacion adjunta {id, role, email}
- * - Si encuentra el token verifica su validez
- * - Si no encuentra retorna 403 Forbidden
- * - Si el token es invalido/expirado retorna 401 Unauthorized
- * - Si es valido adjunta datos del usuario a req.user y continua
- * 
- * Headers soportados:
- * 1 - Authorization bearer <asdfghjklñ...>
- * 2 - x-access-token: <asdfghjklñ...> id, role, email
- * - Propiedades del request despues del middleware:
- * req.userId = (string) Id del nuevo usuario MongoDB
- * req.userRole = (string)  rol del usuario (admin, coordinador, auxiliar)
- * req.userEmail = (string) email del usuario
- */
+/*
+verificar token
+funcionalidad
+busca el token en las ubicaciones posibles (orden de procedencia)
+1. header Authorization con formato Bearer <token> 
+2.headers x-access-token 
+si encuentra el token verifica su validez
+sino encuentra retorna 403 forbidden con mensaje de error
+si token es invalido / expirado retorna 401 unauthorized con mensaje de error
+si  es valido adjunta datos del usuario  a req y continua
+
+headers soportados
+1. Authorization: Bearer <token>
+2. x-access-token: <token> id, role, email
+propiedades del request desìes del middleware:
+req.userId = (string) id del usuario MONGO DB
+req.userRole = (string) rol del usuario (admin, coordinador, auxiliar)
+req.userEmail = (string) email del usuario
+*/
 
 const verifyTokenFn = (req, res, next) => {
     try {
-        // Soporta dos formatos Authorization bearer o access-token
+        // soporta dos formatos authorization bearer o access-token
         let token = null;
 
-        // Fornato Authorization
-        if (req.headers.authorization && req.headers.
-            authorization.startsWith('Bearer')) {
+        //formato authorization
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
 
-            // Extraer token quitando "Bearer"
+            //extraer token quitando el beader
             token = req.headers.authorization.substring(7);
         }
 
-        // Formato x-access-token - formato para el head 
+        // formato access-token
         else if (req.headers['x-access-token']) {
             token = req.headers['x-access-token'];
         }
 
-        // Si no encuentra el token rechaza la solicitud
+        //si no encuentro token retorno la solicitud
         if (!token) {
             return res.status(403).json({
                 success: false,
-                messsage: 'Token no proporcionado'
+                message: 'Token de autenticación requerido',
+                details: 'Incluye Authorization'
             });
         }
 
-        // Verificar el token con la clave secreta - decodificar el token limpiarlo y compararlo
+        //verificar el token con la clave secreta
         const decoded = jwt.verify(token, config.secret);
 
-        // Adjuntar información del usuario al request object para que otros middlewares y rutas puedan acceder a ella
-        req.userId = decoded.id; // id de MongoDB
-        req.userRole = decoded.role; // Rol de usuario
-        req.userEmail = decoded.email; // Email de usuario
+        //adjuntar informacion del usuario al reqiest object para que otros middlewares y rutas puedan acceder a ella
 
-        // Token es valido continuar siguiente middleware o ruta
+        req.userId = decoded.id; //id mongo db
+        req.userRole = decoded.role; //rol del usuario (admin, coordinador, auxiliar)
+        req.userEmail = decoded.email; //email del usuario
+
+        //token es valido continuar siguiente middleware o ruta
         next();
-
     } catch (error) {
-
-        // token invalido o expirado
+        //n token invalido o expirado retornar 401 unauthorized
         return res.status(401).json({
             success: false,
-            message: 'Token es invalido o ha expirado',
+            message: 'Token de autenticación inválido o expirado',
             error: error.message
         });
-
     }
 };
 
-/**
- * Validación de funcion para mejor seguridad y manejo de errores
- * - Verificar que verifyTokenFn sea una funcion valida
- * - Esto es una validación de seguridad para que el middleware se exporte correctamente
- * - Si algo sale mal en su definicion se arroja un error en tiempo de carga del modulo  
- */
 
-// Guarda el token por un tiempo de carga 
+/*
+validacion de funcion para mejorar seguridad y manejo de errores
+verificar que verifyTokenFn sea una funcion valida
+esto es una validacion de seguridad para que le  middleware se exporte correctamente
+si algo sale mal en su definicion lanzara un error en tiempo de carga de modulo
+*/
+
 if (typeof verifyTokenFn !== 'function') {
-    console.error('verifyTokenFn no es una funcion valida');
-    throw new Error('verifyTokenFn no es una funcion valida');
+    console.error('error : verifyTokenFn no es una funcion valida');
+    throw new Error('VerifyTokenFn debe ser una funcion valida');
+
 }
 
-// Exportar middleware
+//exportar el middleware
 module.exports = {
     verifyToken: verifyTokenFn
 }

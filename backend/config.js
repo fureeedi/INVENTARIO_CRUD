@@ -16,11 +16,11 @@ module.exports = {
 
     // Configuración de base de datos
     // Comparación 
-    DB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/INVENTARIO_CRUD',
+    DB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/crud-mongo-taller',
 
     // Generación
     DB: {
-        URL: process.env.MONGODB_URI || 'mongodb://localhost:27017/INVENTARIO_CRUD',
+        URL: process.env.MONGO_URI || 'mongodb://localhost:27017/crud-mongo-taller',
         OPTIONS: {
             userNewUrlParser: true,
             useUnifiedTopology: true,

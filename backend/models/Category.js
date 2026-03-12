@@ -1,91 +1,88 @@
-/** 
- * modelo de categoria MONGODB
- * define la estructura de la categoria 
+/**
+ * Modelo de categoria MONGODB
+ * Define la estructura de la categoria
  */
 
-const mongoose=require('mongoose');
+const mongoose =require('mongoose');
 
-//campos de la tabla categoria 
+//Campos de categoria
 
 const categorySchema = new mongoose.Schema({
-  
-  //nombre de la categoria unico y requerido
-  name:{
-    type: String,
-    required: [true, 'el nombre es obligatorio'],
-    unique: true,
-    trim: true //elimina espacios en blanco al inicio y al final
-  },
+    //nombre de la categoria unico y requerido
+    name:{
+        type: String,
+        require: [true, 'El nombre es obligatorio'],
+        unique: true,
+        trim: true // eliminar espacion al inicio y final
+    },
 
-  // Descripcion dela categoria - requerida 
-  description:{
-    type: String,
-    required:[true, 'la categoria es requerida'],
-    trim: true //Elimina espacios 
-  },
+    //Descripcion de la categoria - requerida
+    description: {
+            type: String,
+            require: [true, 'La descripcion es requerida'],
+            trim: true
+    },
 
-  //Activa y desactivala categoria pero no la elimina
-  active: {
-    type: String,
-    default: true
-  }
-
-},{
-  timestamps: true, //agregar createdAt y updateAT automaticamente
-  versionKey: false, // No incluir campos _v - no guarda directamente - guarda directamente en el cache de mongo - al llamar no trae los datos
+    //Active, desactiva la categoria pero no la elimina
+    active: {
+        type: Boolean,
+        default: true,
+    }
+}, {
+    timestamps: true, // agrega createdAt y updateAt automaticamente
+    versinoKey: false, // no incluir campos __V
 });
+
 /**
- * MIDDLEWARE PRE SAVE
+ * MIDDLEWARE PRE-SAVE
  * Limpia indices duplicados
- * Mongodb a veces crear multiples indices con el mismo nombre 
- * esti causa conflictos al intentar dropIndex o recrear indices
- * este middleware limpia los indices problematicos 
+ * Mongodb aveces crea multiples indices con el mismo nombre
+ * esto causa conflictos al intentar dropIndex o recrear indices
+ * este middleware limpia los indices problematicos
  * proceso
- * 1 obtiene una lista de todos los indices de la coleccion 
-* 2 busca si existe indice con nombre de name_1 (antiguo o duplicado)
-*si existe lo elimina antes de nuevas operaciones 
-ignora errrores si el indice mo exite 
-continua con lel guardado normal
+ * 1 obtiene una lista de todos los indices de la coleccion
+ * 2 busca si existe el indice con nombre name_1 (antiguo o duplicado)
+ * si existe lo elimina antes de nuevas operaciones
+ * ignora errores si el indice no existe
+ * continua con el guardado normal
  */
-categorySchema.pre('save', async function(next) {
-  try{
-    //obtener referencia de la collecion de mongoDB
-    const collection = this.constructor.collection;
+categorySchema.pre('save', async function(next){
+    try{
+        //obtener referencia de la coleecion de mongoDB 
+        const collection = this.contructor.collection
+        //obtener lista de todos los indices
+        const indexes = await collection.indexes();
 
-    //obtener lista de todos los indices
-    const indexes = await collection.indexes();
-
-    //Buscar si existe indice problematico con nombre "name_1"
-    // (del orden: 1 significa ascendente)
-    const problematicIndex = indexes.find(index => index.name === 'name_1');
-      
-    //si lo encuetra, eliminarlo 
-      if (problematicIndex){
-        await collection.dropIndex('name_1');
-      }
-  } catch (error) {
-    //si el errror es index no found no es problema - continuar
-    // si es otro error pasarlo al siguiente middleware 
-    if (!error.message.includes('Index no found')) {
-      return next(error);
-  }
-} 
-// continuar con el guardado 
-  next();
+        //Buscar di existe indice problematico nombre "name_1"
+        //(del orden: 1 significado ascendente)
+        const problematicIndex = indexes.find(index => index.name === 'name_1');
+        
+        //si lo encuentra, eliminarlo
+        if (problematicIndex){
+            await collection.dropIndex('name_1');
+        }
+    } catch (err) {
+        //si el error es Index no found, no es problema - continuar
+        //Si es otro error pasarlo al siguiente middleware
+        if(!err.message.includes('Index no found')){
+            return next(err);
+        }
+    }
+    // Continuar con el guardado
+    next();
 });
 
 /**
  * crear indice unico
  * 
- * Mongo rechazara cualquier intentyo de insertar un documento con un valor de name que ya exista
- * aumentar la velocidad de las busquedas 
+ * mongo rechazara cualquier intento de insertar o actualizar un documento con un valor de name ya que exista
+ * aumenta la velocidad de las busquedas
  */
 
-categorySchema.index({name: 1}, {
-  unique: true,
-  name: 'name_1' // nombre explicito para eitar conflictos
-
+categorySchema.index({name: 1},{
+    unique: true,
+    name: 'name_1' // nombre explicito para evitar conflictos
 });
 
-//Exportar el modelo 
-module.exports = mongoose.model('Category', categorySchema)
+//exportar el modelo
+module.exports = mongoose.model('Category', categorySchema);

@@ -1,100 +1,94 @@
-/**
- * MIDDLEWARE: Autenticación JWT
- * 
- * - Verifica que si el usuario tenga un token valido y carga los datos del usuario en req.user
- */
+/*
+MIDDLEWARE: Autenticación JWT
+Verifica que el usuario tenga un token válido
+y carga los datos del usuario en req.user
+*/
 
-// codificar y decodificar el token
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-/**
- * Autenticar usuario
- * - Valida el token Bearer en el header Authorization
- * - Si es valido carga el usuario en req.user
- * - Si no es valido o no existe retorna 401 Unauthorized
- */
+/*
+Autenticar usuarios
+Valida el token JWT Bearer en el header Authorization.
+Si es válido, carga el usuario en req.user.
+Si no es válido o no existe, retorna 401 Unauthorized.
+*/
 
-exports.authenticate = async (req, res, next) => {
+exports.authenticateJWT = async (req, res, next) => {
     try {
+        // Extraer el token del header: Bearer <token>
+        const token = req.header('Authorization')?.replace('Bearer ', '');
 
-        // Extraer el token del header Bearer <token>
-        const token = req.header('Authorization')?.
-        replace('Bearer', ''); // que el token sea limpio sin prefijos
-
-        // Si no hay token rexhaza la solicitud - Que el usuario deba existir en el sistema
+        // Si no hay token, rechazar la solicitud
         if (!token) {
             return res.status(401).json({
                 success: false,
                 message: 'Token de autenticación requerido',
-                details: 'Incluye Autorization: Bearer <token>'
+                details: 'Incluye Authorization: Bearer <token>'
             });
         }
 
-        // Verificar y decodificr el token
-        const decoded = jwt.verify(token, process.env.JWR_SECRET);
+        // Verificar y decodificar el token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Buscar el usuario en la base de datos - Usuario que entre al sistema y genere token
-        const user = await User.findById(decoded.id);
+        // Buscar el usuario en la base de datos
+        const user = await User.findById(decoded.userId);
 
-        // Si no existe el usuario
+        // Si el usuario no existe, rechazar la solicitud
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'El usuario no existe o eliminado'
+                message: 'Usuario no encontrado o ha sido eliminado'
             });
         }
 
-        // Guardar el usuario en el request para usar en los siguientes middlewares o controladores
+        // Cargar el usuario en el request
         req.user = user;
 
-        // Llamar el siguente middleware o controller
+        // Llamar al siguiente middleware o controlador
         next();
 
-    } catch (error){
+    } catch (error) {
+        console.error('Error en authenticateJWT:', error.message);
 
-        // Token invalido o error en la verificación
-        let message = 'Token invalido o expirado';
+        let message = 'Token de autenticación inválido';
+
         if (error.name === 'TokenExpiredError') {
-            message = 'Token expirado, por favor inicia sesion nuevamente';
+            message = 'Token de autenticación expirado';
         } else if (error.name === 'JsonWebTokenError') {
-            message = 'Token invalido o mal formado';            
+            message = 'Token de autenticación no válido';
         }
 
-        // fallo token
         return res.status(401).json({
             success: false,
-            message: message,
+            message,
             error: error.message
         });
     }
 };
 
- /**
-  * MIDDLEWARE para autorizar por role
-  * - Verifica que el usuario tiene uno de los roles requiridos se usa despues del middleware autheticate
-  * @param {Array} roles - Array de roles permitidos
-  * @returns {Function} - Middleware Function
-  * 
-  * USO: app.delete('api/users/:id', authenticate, authorize (['admin']))
-  */
+/*
+middleware para autorizar por el rol
+verificar que el usuario tiene uno de los roles requeridos se usa despues del maldware de autenticacion
+// @param{Array} roles - Lista de roles permitidos para acceder a la ruta
+// @returns {Function} Middleware de autorización
 
- exports.authorize = (roles) => {
+uso : app.delete('/api/users/:id', authenticateJWT, authorizeRoles(['admin']), deleteUser);
+*/
+
+exports.authorizeRoles = (roles) => {
     return (req, res, next) => {
-
-        // Verificar si el rol del usuario esta en la lista de roles permitidos
+        // Verificar que el usuario autenticado tiene uno de los roles permitidos
         if (!roles.includes(req.user.role)) {
             return res.status(403).json({
                 success: false,
-                message: 'No tienes autorización para realizar esta acción',
-                requiredRoles: roles, // roles que si tienen acceso 
-                currentRole: req.user.role, // usuario que intenta ingresar
-                details: `Tu rol es "${req.user.role}
-                pero se requiere uno de: ${roles.join(', ')}`   
+                message: 'Acceso denegado: rol insuficiente',
+                requiredRoles: roles,
+                currentRole: req.user.role,
+                details: `tu rol es "${req.user.role}" pero se requiere uno de: ${roles.join(', ')}`
             });
         }
-
-        // Si el usuario tiene el permiso continuar
+        //si el usuario tiene permiso , continuar con el siguiente middleware o controlador
         next();
     };
- };
+};

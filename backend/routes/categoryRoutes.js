@@ -24,13 +24,9 @@ router.post('/',
     categoryController.createCategory
 );
 
-router.get('/', 
-    verifyToken,
-    categoryController.getCategories);
+router.get('/', categoryController.getCategories);
 
-router.get('/:id', 
-    verifyToken,
-    categoryController.getCategoryById);
+router.get('/:id', categoryController.getCategoryById);
 
 router.put('/:id',
     verifyToken,

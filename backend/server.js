@@ -26,31 +26,31 @@ if(!process.env.JWT_SECRET) { // definida jsonwebtoken
     process.exit(1);
 }
 
-    // Importar todas las rutas
-    const authRoutes = require('./routes/authRoutes');
-    const userRoutes = require('./routes/userRoutes');
-    const productRoutes = require('./routes/productRoutes');
-    const categoryRoutes = require('./routes/categoryRoutes');
-    const subcategoryRoutes = require('./routes/subcategoryRoutes');
-    const statisticsRoutes = require('./routes/statisticsRoutes');
+// Importar todas las rutas
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const productRoutes = require('./routes/productRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const subcategoryRoutes = require('./routes/subcategoryRoutes');
+const statisticsRoutes = require('./routes/statisticsRoutes');
 
-    // Iniciar express
-    const app = express(); // conexiones 
+// Iniciar express
+const app = express(); // conexiones 
 
-    // Cors permite las solicitudes desde el frontend
-    app.use(cors({
-        origin: 'http://localhost:3000',
-        credentials: true,
-    }));
+// Cors permite las solicitudes desde el frontend
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+}));
 
-    // Morgan registra todas las solicitudes HTTP en consola
-    app.use(morgan('dev'));
+// Morgan registra todas las solicitudes HTTP en consola
+app.use(morgan('dev'));
 
-    // Express JSON pasa bodies en formato JSON
-    app.use(express.json());
+// Express JSON pasa bodies en formato JSON
+app.use(express.json());
 
-    // Express URL encoded soporta datos form-encoded
-    app.use(express.urlencoded({ extended: true }));
+// Express URL encoded soporta datos form-encoded
+app.use(express.urlencoded({ extended: true }));
 
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -61,38 +61,60 @@ mongoose.connect(process.env.MONGODB_URI)
         process.exit(1);
     });
 
-    // Registra Rutas
+// Registra Rutas
 
-    // Rutas de autenticación de login
-    app.use('/api/auth', authRoutes);
+// Rutas de autenticación de login
+app.use('/api/auth', authRoutes);
 
-    // Rutas de usuarios
-    app.use('/api/users', userRoutes);
+// Rutas de usuarios
+app.use('/api/users', userRoutes);
 
-    // Rutas de productos CRUD
-    app.use('/api/products', productRoutes);
+// Rutas de productos CRUD
+app.use('/api/products', productRoutes);
 
-    // Rutas de categorías CRUD
-    app.use('/api/categories', categoryRoutes);
+// Rutas de categorías CRUD
+app.use('/api/categories', categoryRoutes);
 
-    // Rutas de subcategorias CRUD
-    app.use('/api/subcategories', subcategoryRoutes);
+// Rutas de subcategorias CRUD
+app.use('/api/subcategories', subcategoryRoutes);
 
-    // Rutas de estadísticas
-    app.use('/api/statistics', statisticsRoutes);
+// Rutas de estadísticas
+app.use('/api/statistics', statisticsRoutes);
 
-    // Manejo de errores
-    app.use((req, res) => {
-        res.status(404).json({
-            success: false,
-            message: 'Ruta no encontrada',
-        });
+//ruta base opcional para verificar que el servidor responde
+app.get('/', (req, res) => res.send('Backend funcionando'));
+
+// Manejo de errores
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Ruta no encontrada',
     });
+});
 
-    // Iniciar el servidor
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`Servidor corriendo en http://localhost:${PORT}`);
+// middleware global de manejo de errores
+app.use((error, req, res, next) => {
+    console.error('Error global:', error);
+    res.status(err.status || 500).json({
+        success: false,
+        message: error.message || 'Error interno del servidor'
     });
+});
+
+// listeners para errores de promesas no manejadas o excepciones
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+process.on('uncaughtException', error => {
+    console.error('Uncaught Exception thrown:', error);
+    process.exit(1);
+});
+
+// Iniciar el servidor
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
 
     

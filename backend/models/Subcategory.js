@@ -1,84 +1,80 @@
-/** 
+/**
  * Modelo de subcategoria MONGODB
- * Define la estructura de la subcategoria 
+ * Define la estructura de la subcategoria
  * la subcategoria depende de una categoria
- * muchos productos pueden pertenecer a una subcategoria
- * Muchas subcategorias dependen de una sola categoria
+ * muchos productos pueden perteneces a una subcategoria
+ * muchas subcategorias dependen de una sola categoria
  */
 
-const mongoose=require('mongoose');
+const mongoose =require('mongoose');
 
-//Campos de la tabla subcategoria 
+//Campos de subcategoria
 
 const subcategorySchema = new mongoose.Schema({
-  //Nombre de la subcategoria unico y requerido
-  name:{
-    type: String,
-    required: [true, 'el nombre es obligatorio'],
-    unique: true,// no pueden haber dos subcategorias con el mismo nombre
-    trim: true //elimina espacios en blanco al inicio y al final
-  },
+    //nombre de la subcategoria unico y requerido
+    name:{
+        type: String,
+        require: [true, 'El nombre es obligatorio'],
+        unique: true, // no pueden haber dos subcategorias con el mismo nombre
+        trim: true // eliminar espacion al inicio y final
+    },
+    
+    //Descripcion de la subcategoria - requerida
+    description: {
+            type: String,
+            require: [true, 'La descripcion es requerida'],
+            trim: true
+    },
+    
+    //Categoria padre, esta subcategoria pertenece a una categoria 
+    //relacion 1 - muchos. Una categoria puede tener muchas subcategorias
 
-  // Descripcion dela subcategoria - requerida 
-  description:{
-    type: String,
-    required:[true, 'la descripcion es requerida'],
-    trim: true //Elimina espacios 
-  },
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category', // puede ser poblado con .populate ('category')
+        required: [true, 'La categoria es requerida']
+    },
 
-  // categoria padre esta subcategoria pertenece a una categoria 
-  //relacion 1 - muchos una categoria puede tener muchas subcategorias
-
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category', //puede ser poblado con .populate ('category)
-    required: [true, 'la categoria es requerida']
-  },
-
-  //Activa y desactivala categoria pero no la elimina
-  active: {
-    type: String,
-    default: true
-  }
-
-},{
-  timestamps: true, // Agregar createdAt y updateAT automaticamente
-  versionKey: false, // No incluir campos _v - no guarda directamente - guarda directamente en el cache de mongo - al llamar no trae los datos
+    //Active, desactiva la subcategoria pero no la elimina
+    active: {
+        type: Boolean,
+        default: true,
+    }
+}, {
+    timestamps: true, // agrega createdAt y updateAt automaticamente
+    versinoKey: false, // no incluir campos __V
 });
+
 /**
- * MIDDLEWARE PRE SAVE
+ * MIDDLEWARE PRE-SAVE
  * Limpia indices duplicados
- * Mongodb a veces crear multiples indices con el mismo nombre 
- * esti causa conflictos al intentar dropIndex o recrear indices
- * este middleware limpia los indices problematicos 
+ * Mongodb aveces crea multiples indices con el mismo nombre
+ * esto causa conflictos al intentar dropIndex o recrear indices
+ * este middleware limpia los indices problematicos
  * proceso
- * 1 obtiene una lista de todos los indices de la coleccion 
-* 2 busca si existe indice con nombre de name_1 (antiguo o duplicado)
-*si existe lo elimina antes de nuevas operaciones 
-ignora errrores si el indice mo exite 
-continua con lel guardado normal
+ * 1 obtiene una lista de todos los indices de la coleccion
+ * 2 busca si existe el indice con nombre name_1 (antiguo o duplicado)
+ * si existe lo elimina antes de nuevas operaciones
+ * ignora errores si el indice no existe
+ * continua con el guardado normal
  */
-subcategorySchema.post('save', function(error,doc,next) {
-  // verificar si el error de mongoDB por violacion fr indice univo
-  if (error.name === 'MongoServerError' && error.code === 1000) {
-      next(new Error('ya existe una subcategoria con ese nombre'));
-
+subcategorySchema.post('save', function(error, doc, next) {
+        //veruficar si es error de mongoDB por violacion de indice unico
+    if (error.name === 'MongoServerError' && error.code === 1000){
+            next(new Error('Ya existe una subcategoria con ese nombre'));
+        
     } else {
-        //pasar el error tal como es
-      next(error);
-
-      }
-      
+    // pasar el error tal como es
+    next(error);
+    }
 });
 
 /**
  * crear indice unico
  * 
- * Mongo rechazara cualquier intentyo de insertar un documento con un valor de name que ya exista
- * aumentar la velocidad de las busquedas 
+ * mongo rechazara cualquier intento de insertar o actualizar un documento con un valor de name ya que exista
+ * aumenta la velocidad de las busquedas
  */
 
-
-
-//Exportar el modelo 
+//exportar el modelo
 module.exports = mongoose.model('Subcategory', subcategorySchema);

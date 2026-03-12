@@ -1,143 +1,131 @@
 /**
- * MIDDLEWARE DE VALIDACIÓN SIGNUP
+ * middleware de validacion de signup
  * 
- * Middleware para validar datos durante el proceso de registros de nuevos usuarios
- * Se ejecuta con la ruta post /api/auth/signup Despues de verificar el token
+ * middleware para validar datos durante el proceso de registro de nuevos usuarios
  * 
- * VALIDACIONES:
- * 1 - checkDuplicateUserNameOrEmail: verifica inicidad del username y email
- * 2 - checkRolesExisted: verifica que el rol solicitado sea valido
+ * se ejecuta en la ruta post /api/auth/signup despues de verificar el token
+ * Validaciones:
+ * 1. checkDuplicateUsernameOrEmail: verifica inicidad del username y email
+ * 2. checkRolesExisted: valida que el rol solicitado sea valido
  * 
- * FLUJO DE SOLICITUD:
- * 1 - Cliente envia post /api/auth/signup con datos
- * 2 - verifyToken confirma que usuario autenticado admin 
- * 3 - checkRole('Admin') verifica que es admin
- * 4 - checkDuplicateUserNameOrEmail valida unicidad
- * 5 - checkRolesExisted valida el rol
- * 6 - authController.signup crea nuevo usuario si todo es valido
+ * flujo de signup
+ * 1. cliente envia post /api/auth/signup con datos
+ * 2. verifyToken confirma que usuario autenticado admin
+ * 3. checkRole ('admin') verifica que es admin
+ * 4. checkDuplicateUsernameOrEmail valida unicidad
+ * 5. checkRolesExisted valida rol
+ * 6. authController.signup crea usuario si todo es valido
  * 
- * ERRORES RETORNADOS:
- * 1 - 400: Username / email duplicado o rol invalido
- * 2 - 500: Error de base de datos
+ * Errores retornados:
+ * 400 Username / email duplicado o rol invalido
+ * 500 error de base de dato 
  */
 
 const User = require('../models/User');
 
 /**
- * Verificar que username y email sena unicos
+ * Verifica que username y email sean unicos
+ * validaciones
+ * username no debe existir en la base de datos
+ * email no debe existir en la base de datos
+ * ambos campos debe estar presente en el request
  * 
- * VALIDACIONES:
- * - username no debe existir en la base de datos
- * - email no debe existir en la base de datos
- * - ambos campos deben estar presentes en el request
- * 
- * BUSQUEDA: Usa MongoDB $or para verificar ambas condiciones en una solo query
+ * busqueda: usa MongoDB $or para verificar ambas condiciones en una sola query
  * @param {Object} req request object con req.body{username, email}
- * @param {Object} res response object para enviar errores
- * @param {Function} next Callback al siguiente middleware
+ * @param {Object} res reponse object para evitar errores
+ * @param {Function} next Callback al siguiente middleware 
  * 
- * RESPUESTAS:
- * 1 - 400: Si username / email falta o ya existe
- * 2 - 500: Error de base de datos
- * 3 - next(): Si la validación pasa
+ * respuestas:
+ * 400 si username/email falta o ya existe
+ * 500 error de la base de datos
+ * next() si la validacion pasa
  */
 
 const checkDuplicateUsernameOrEmail = async (req, res, next) => {
-    try {
-
-        // Validar que ambos campos esten presentes
-        if (!req.body.username || !req.body.email) {
+    try{
+        // validar que ambos campo estan presentes
+        if(!req.body.username || !req.body.email){
             return res.status(400).json({
-                message: 'Username y email son requeridos'
+                message: 'Username y email don requeridos'
             });
         }
 
-        // Buscar usuario existente o igual username o email
+        // Buscar usario existente con igual username o email
         const user = await User.findOne({
             $or: [
                 { username: req.body.username },
                 { email: req.body.email }
             ]
-        }) .exec(); // ejecuta query para retornar el dato
+        }).exec();
 
-        // Si encuentra un usuario retornar error
-        if (user) {
+        //si encuentra un usuaro retorna error
+        if (user){
             return res.status(400).json({
                 success: false,
-                messsage: 'Username o Email ya existen'
+                message: 'Username o email ya existente'
             });
         }
 
-        // Si no hay duplicados continuar
+        // no hay duplicados continuar
         next();
-
-    } catch (error) {
-        console.error('[verifySingUp] Error en checkDuplicateUsernameOrEmail', error);
+    } catch (err){
+        console.error('[verifySigp] Error en checkDuplicateUsernameOrEmail: ', err);
         return res.status(500).json({
             success: false,
             message: 'Error al verificar credenciales',
-            error: error.message
+            error: err.message
         });
     }
 };
 
 /**
- * MIDDLEWARE para verificar que el rol solicitado sea valido
- * 
- * Roles validos en el sistema:
- * - admin: Administradot total
- * - coordinador: Gestor de datos
- * - auxiliar: usuario basico
- * 
- * CARACTERISTICAS:
- * - Permite pasar solo un rol
- * - Filtrar y rechazar roles invalidos
- * - Si algun rol es invalido rechaza todo el request
- * - Si el campo role no esta presente permite continuar
- * 
- * default a rol auxiliar
- * @param {Object} req request object con req.body.{role....}
+ * MIDDLEWARE verificar que el rol solicitado exista sea valido
+ * roles validos en sistema:
+ * admin: Administrador total
+ * coordinador: Gestor de datos
+ * auxiliar usuario basico
+ * caracteristicas
+ * permite pasar solo un rol
+ * filtrar y rechazar roles invalidos
+ * si algun rol es invalido rechaza todo el request
+ * si campo role no esta presente permite continuar default a rol auxiliar
+ * @param {Object} req request object con req.body.{role...}
  * @param {Object} res response object
  * @param {Function} next callback al siguiente middleware
- * 
- * RESPUESTAS
- * 1 - 400: Si algun rol es invalido
- * 2 - next: Si todos los roles son validos o role no esta especificado
+ * respuestas:
+ * 400 si algun rol es invalido next()
+ si todos los roles son validos o role no esta especificado
  */
-
-const checkRolesExisted = (req, res, next) => {
-    
-    // Lista blanac de roles validos en el sistema
+    const checkRolesExisted = (req, res, next) => {
+    //lista blanca de roles validos en el sistema
     const validRoles = ['admin', 'coordinador', 'auxiliar'];
 
-    // Si el role esta presente en el request
-    if (req.body.role) {
+    //si role esta presente en el request
+    if(req.body.role) {
+        
+    /** Guardar los roles en un array soporta un solo rol o multiples en el caso un usuario
+    tenga varios roles asignados
+    */
+        const roles = Array.isArray(req.body.role) ? req.body.role: [req.body.role];
 
-        // Guarda lo roles en un array soporta un solo rol o multiples en el caso que un usuario tenga varios roles asignados
-        const roles = Array.isArray(req.body.role) ? req.body.role : [req.body.role];
-
-        // Filtrar roles que no estan en la lista valida
+        // filtrar roles que no estan en la lista valida
         const invalidRoles = roles.filter(role => !validRoles.includes(role));
 
-        // Si hay roles invalidos rechazar
-        if (invalidRoles.legth > 0) {
+        //si hay roles invalidos rechazar 
+        if(invalidRoles.length > 0){
             return res.status(400).json({
                 success: false,
                 message: `Rol(es) no validos: ${invalidRoles.join(', ')}`
             });
         }
     }
-
-    // Todos los roles son validos o no especificado continuar
     next();
-
 };
 
 /**
- * EXPORTAR middlewares
- * 
- * USO DE RUTAS:
- * router.post('/signup....')
+ * Exportar middlewares 
+ * uso de rutas:
+ * router.post ('/signup....)
  */
 
 module.exports = {

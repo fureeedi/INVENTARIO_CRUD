@@ -1,21 +1,21 @@
 /**
  * Controlador de usuarios
- * Este modulo maneja todas las operaciones del crud para gestion de usuarios
- * Incluye control de acceso basado en roles
- * Roles permitidos: admin, coordinador y auxiliar
- * Seguridad.
- * Las contraseñas nunca se devuelven es respuestas 
- * Los auxiliares no pueden ver y actualizar otros usuarios
- * Los corrdinadores no pueden ver a los administradores 
- * Activar y desactivar usuarios 
- * Eliminar permenentemente un usuario solo lo puede hacer admin
+ * Este modulo maneja todas las operaciones del crud para la gestion de usuarios
+ * incluye control de acceso a basado en rorles
+ * Roles permitidos admin, coordinador, auxiliar
+ * Seguridad
+ * Las contraseñas nunca se devuelven en respuestas
+ * los auxiliares no pueden ver y actuakuzar otros usuarios
+ * los coordinadores no pueden ver los administradores
+ * activar y desactivar usuarios
+ * eliminar permanentemente un usuairo solo admin
  * 
- * OPERACIONES 
- * getAlluser listar usuarios con filtro rol
- * getUserById obtener un usuario especifico
- * createUser crear un nuevo usuario con validación
- * updateUser actualizar un usuario con restricciones de rol
- * deleteUser eliminar un usuario con restricciones de rol
+ * operaciones
+ * getAlluser listar usuarios con filtro por rol
+ * getuserById obtener usuario especifico
+ * Createuser crear un nuevo usuario con validacion
+ * Updateuser actualizar usuario con restricciones de rol
+ * Delete: user eliminar usuario con restricciones de rol
  */
 
 const User = require('../models/User');
@@ -24,60 +24,60 @@ const bcrypt = require('bcryptjs');
 /**
  * Obtener lista de usuarios
  * GET /api/users
- * Auth: Bearer token requerido
- * query params incluir activo o desactivado
+ * Auth token requerido
+ * Query params incluir activo o desactivados
  * 
- * Retorna
- * 1 - 200: array de usuarios filtrados
- * 2 - 500: error de servidor
+ * retorna
+ * 200 array usuarios filtrados
+ * 500 error de servidor 
  */
 
 exports.getAllUsers = async (req, res) => {
-    try {                //petición
-
-        // Por defecto solo muestra usuarios activos
+    try {
+        // por defecto solo mostrar usuarios activos
         const includeInactive = req.query.includeInactive === 'true';
-        const activeFilter = includeInactive ? {} : { active : { $ne : false }};
-        
-        let users; //array de los usuarios
-        // Control de acceso basado en rol
-        if (req.user.role === 'auxiliar') {
-            // los auxiliares solo pueden verse a si mismo 
-            users = await User.find({_id: req.userId, ...activeFilter}).select('-password'); // Que el unico que puede modificar contraseña es el usuario mismo
+        const activeFilter = includeInactive ? {} : { active: { $ne: false } };
+
+        let users;
+
+        //control de accesobasado en rol
+        if (req.userRole === 'auxiliar') {
+            //los auxiliares solo pueden verse a si mismo
+            users = await User.find({ _id: req.userId, ...activeFilter }).select('-password');
         } else {
-            // Los admin y coordinadores ven todos los usuarios
-            users = await User.find(activeFilter).select('-password'); // incluyendo password - ver
+            //los admin y coordinadores ven todos los usuarios
+            users = await User.find(activeFilter).select('-password');
         }
 
         res.status(200).json({
             success: true,
-            data: users,
+            data: users
         });
 
     } catch (error) {
-        console.error('[CONTROLLER] Error en getAllUsers', error.message);
+        console.error('[CONTROLLER] Error en getAllusers: ', error.message);
         res.status(500).json({
             success: false,
-            message: 'Error al obtener usuarios'
+            message: 'Error al obtener todos los usuarios'
         });
     }
 };
 
 /**
- * READ obtener un usuario especifico por id 
+ * Read obtener un usuario especifico por id
  * GET /api/users/:id
- * Auth token requerido
- * Retorna:
- * 1 - 200: Usuario encontrado
- * 2 - 403: Sin permiso para ver al usuario
- * 3 - 404: Usuario no encontrado
- * 4 - 500: Error en el servidor 
+ * auth token requerido
+ * respuestas
+ * 200: usuario encontrado
+ * 403: sin permiso para ver el usuario
+ * 404: usuario no encontrado
+ * 500: error de servidor
  */
 
 exports.getUserById = async (req, res) => {
     try {
-
-        const user = await User.findById(req.params.id).select('-password'); // '-' muestra contraseña
+        // por defecto solo mostrar usuarios activos
+        const user = await User.findById(req.params.id).select('-password');
 
         if (!user) {
             return res.status(404).json({
@@ -86,20 +86,20 @@ exports.getUserById = async (req, res) => {
             });
         }
 
-        // Validaciones de acceso
-        // Los auxiliares solo pueden ver su propio perfil
-        if (req.user.Role === 'auxiliar' && req.userId!== req.params.id.toString()) {
+        //validaciones de acceso
+        //los auxiliares soloo pueden ver su propio perfil
+        if (req.userRole === 'auxiliar' && req.userId !== user.id.toString()) {
             return res.status(403).json({
                 success: false,
-                message: 'No tienes permiso para ver este usuario'
+                message: 'no tienes permisos para ver este usuario'
             });
         }
 
-        // Los coordinadores no pueden ver a los administradores
-        if (req.user.Role === 'coordinador' && user.role === 'admin') {
+        //los coordinadores no pueden ver administradores
+        if (req.userRole === 'coordinador' && user.role === 'admin') {
             return res.status(403).json({
                 success: false,
-                message: 'No puedes ver usuarios admin'
+                message: 'no puedes ver usuarios admin'
             });
         }
 
@@ -109,7 +109,7 @@ exports.getUserById = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error en getUserById', error.message);
+        console.error('Error en getUserById ', error.message);
         res.status(500).json({
             success: false,
             message: 'Error al encontrar al usuario especifico',
@@ -118,187 +118,185 @@ exports.getUserById = async (req, res) => {
     }
 };
 
-/**
- * CREATE crear un nuevo usuario
- * POST api/users
- * Auth token requerido
- * Roles: admin y coordinador (con restricciones)
- * VALIDACIONES
- * 1 - 201: Usuario creado
- * 2 - 400: Validación fallida
- * 3 - 500: Error de servidor
- */
+
+/*
+CREATE crear un nuevo usuario
+POST /api/users
+Auth bearer token requerido
+Roles : admin y coordinador (con restricciones)
+
+respuestas :
+201: usuario creado
+400 : validacion fallida
+500: error de sv
+*/
 
 exports.createUser = async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
 
-        // Crear usuario nuevo
-        const newUser = new User ({
+        //crear usuario nuevo
+        // use a different variable name to avoid shadowing the User model
+        const newUser = new User({
             username,
             email,
             password,
             role
         });
 
-        // Guardar usuario en DB
+        //guardar en bd
         const savedUser = await newUser.save();
 
         res.status(201).json({
             success: true,
-            message: 'Usuario creado correctamente',
+            message: 'Usuario creado',
             user: {
-                id: savedUser._id,
-                username: savedUser.username,
+                id: savedUser.username,
                 email: savedUser.email,
-                role: savedUser.role,
+                role: savedUser.role
             }
         });
 
     } catch (error) {
-        console.error('Error en createUser', error);
+        console.error('Error en createUser:', error);
         res.status(500).json({
             success: false,
-            message: 'Error al crear el usuario',
+            message: 'error al crear usuario',
             error: error.message
         });
     }
 };
 
-/**
- * UPDATE actualizar un usuario existente
- * PUT /api/users/:id
- * Auth token requerido
- * VALIDACIONES
- * - Auxiliar solo puede actualizar su propio perfil
- * - Auxiliar no pude cambiar su rol
- * - Admin y Coodinador pueden actualizar otros usuarios
- * Retorna:
- * 1 - 200: Usuario actualizado
- * 2 - 403: Sin permiso para actualizar el usuario
- * 3 - 404: Usuario no encontrado
- * 4 - 500: Error en el servidor
- */
+
+/*
+    * Update actualizar un usuario existente
+    * Put /api/users/:id
+    * Auth bearer token requerido
+    * Validaciones
+    * Auxiliar solo puede actualizar su propio perfil 
+    * Auxiliar no puede cambiar su rol
+    * Admin, coordinador pueden actualizar otros usuarios 
+    * 200 usuario actualizado
+    * 403 sin permiso para actualizar
+    * 404 usuario no encontrado
+    * 500 error de servidor
+*/
 
 exports.updateUser = async (req, res) => {
     try {
 
-        // Resctricciones: Auxiliar solo puede actualizar su propio perfil
-        if (req.userRole === 'auxiliar' && req.userId.
-        toString() !== req.params.id) {
+        //restriccion: auxiliar solo puede actualizar su propio perfil 
+        if (req.userRole === 'auxiliar' && req.userId.toString() !== req.params.id) {
             return res.status(403).json({
                 success: false,
-                message: 'No tienes permiso para actualizar este usuario'
+                message: 'no tienes permisos para actualizar este usuario'
             });
         }
 
-        // Resctricciones: Auxiliar no puede cambiar su rol
+        //restriccion auxiliar no puede cambiar su rol
         if (req.userRole === 'auxiliar' && req.body.role) {
             return res.status(403).json({
                 success: false,
-                message: 'No tienes permiso para modificar su rol'
+                message: 'no puedes cambiar tu rol'
             });
         }
 
-        // Actualizar usuario
-        const updateUser = await User.findByIdAndUpdate(
+        //actualizar usuario
+        const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
             { $set: req.body },
-            { new: true } //Retorna documento actualizado
-         ).select('-password'); // No retornar contraseña
-        
-        if (!updateUser) { //retorna null 
+            { new: true } //retorna documento actualizado
+        ).select('-password'); //no retorna contraseña
+
+        if (!updatedUser) {
             return res.status(404).json({
                 success: false,
                 message: 'Usuario no encontrado'
             });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            message: 'Usuario actualizado correctamente',
-            user: updateUser
+            message: 'Usuario actualizado',
+            data: updatedUser
         });
-
     } catch (error) {
-        console.error('Error en updatedUser', error);
+        console.error('Error en updateUser:', error);
         res.status(500).json({
             success: false,
-            message: 'Error al actualizar el usario',
+            message: 'Error al actualizar usuario',
             error: error.message
         });
     }
 };
 
-/**
- * DELETE eliminar usuario
- * DELETE /api/users/:id
- * Auth token requerido
- * Roles: admin
- * Query params: 
- * hardDelete = true - eliminar permanentemente
- * default soft delete (solo desactivar)
- * 
- * - El admin solo puede desactivar otro admin
- * 
- * Retorna:
- * 1 - 200: Usuario eliminado o desactivado
- * 2 - 403: Sin permiso para eliminar usuario
- * 3 - 404: Usuario no encontrado
- * 4 - 500: Error en el servidor
- */
+/*
+    * DELETE eliminar usuario
+    * delete /api/users/:id
+    * roles:admin
+    * query params:
+        hardDelete= true eliminar permanentemente
+        default soft delete desactivar
+
+    el admin solo puede desactivar  otro admin
+    retorna:
+    * 200 usuario eliminado o desactivado
+    * 403 sin permiso
+    * 404 usuario no encontrado
+    * 500 error de sv
+*/
 
 exports.deleteUser = async (req, res) => {
     try {
+        const ishardDelete = req.query.ishardDelete === 'true';
+        // solo administradores pueden eliminar/activar usuarios
+        if (req.userRole !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permisos para eliminar usuarios'
+            });
+        }
 
-        const isHardDelete = req.query.hardDelete === 'true';
         const userToDelete = await User.findById(req.params.id);
 
+        if (userToDelete.role === 'admin' && req.userId.toString() !== req.params.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'No puedes eliminar a otro administrador'
+            });
+        }
+    
         if (!userToDelete) {
             return res.status(404).json({
                 success: false,
                 message: 'Usuario no encontrado'
             });
         }
-
-        if (req.userRole === 'admin' && userToDelete.role.__id.toString() !== req.userId.
-            toString()) {
-            return res.status(403).json({
-                success: false,
-                message: 'No tienes permiso para eliminar o desactivareste administradores'
+        
+        if (ishardDelete) {
+            //eliminar permanentemente
+            await User.findByIdAndDelete(req.params.id);
+            return res.status(200).json({
+                success: true,
+                message: 'Usuario eliminado permanentemente'
             });
         }
 
-        if (isHardDelete) {
+        // soft delete: desactivar usuario
+        userToDelete.active = false;
+        await userToDelete.save();
 
-            // Eliminar permanentemente de la base de datos
-            await User.findByIdAndDelete ( req.params.id );
-
-            res.status(200).json({
-                success: true,
-                message: 'Usuario eliminado permanentemente',
-                user: userToDelete
-            });
-
-        } else {
-
-            // Desactivar usuario
-            userToDelete.active = false;
-            await userToDelete.save();
-
-            res.status(200).json({
-                success: true,
-                message: 'Usuario desativdo',
-                data: userToDelete
-            });
-        }
-
-    } catch (error) {
-        console.error('Error en deleteUser', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al desactivar el usuario',
-            error: message.error
+        return res.status(200).json({
+            success: true,
+            message: 'Usuario desactivado'
         });
+    } catch (error) {
+        console.error('Error en deleteUser:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error al eliminar/desactivar usuario',
+            error: error.message
+        });
+
     }
 };

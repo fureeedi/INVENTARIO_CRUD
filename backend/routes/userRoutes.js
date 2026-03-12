@@ -33,29 +33,35 @@ router.use((req, res, next) => { // no ha ejecutado rutas
 })
 
 // RUTAS DE USUARIO
+
+// crear usuario
 router.post('/',
     verifyToken,
-    checkRole('admin', 'coordinador'),
+    checkRole('admin'),
     userController.createUser
 );
 
+// listar usuarios
 router.get('/', 
     verifyToken,
     checkRole('admin', 'coordinador', 'auxiliar'),
     userController.getAllUsers
 );
 
+// obtener usuario por id
 router.get('/:id',
     verifyToken,
     checkRole('admin', 'coordinador', 'auxiliar'),
     userController.getUserById);
 
+// actualizar usuario por id
 router.put('/:id',
     verifyToken,
     checkRole('admin', 'coordinador', 'auxiliar'),
     userController.updateUser
 );
 
+// eliminar usuario por id
 router.delete('/:id',
     verifyToken,
     checkRole('admin'),
