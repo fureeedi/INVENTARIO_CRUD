@@ -148,11 +148,12 @@ async function runTests() { // Función principal que ejecuta todos los tests en
 
   // Actualizar categoría
   if (categoryId) { // Solo ejecuta si la categoría fue creada exitosamente
-   res = await request('PUT', `/categories/${categoryId}`, { name: `Updated Category ${timestamp}` }); // Petición PUT para cambiar el nombre
+    res = await request('PUT', `/categories/${categoryId}`, { name: `Updated Category ${timestamp}` }); // Petición PUT para cambiar el nombre
     const updateOk = res.ok && res.status === 200;
     log('PUT /categories/:id (actualizar)', updateOk, `(Status: ${res.status})`); // Verifica 200 OK
     if (!updateOk) error(`/categories/${categoryId} PUT`, res); // Si falló, imprime detalles del error
   }
+
   // ============= SUBCATEGORÍAS =============
   console.log('\n📋 TEST 4: SUBCATEGORÍAS');
   console.log('─────────────────────────────');
@@ -188,11 +189,12 @@ async function runTests() { // Función principal que ejecuta todos los tests en
 
   // Actualizar subcategoría
   if (subcategoryId) { // Solo ejecuta si la subcategoría fue creada exitosamente
-   res = await request('PUT', `/subcategories/${subcategoryId}`, { name: `Updated Subcategory ${timestamp}` }); // Petición PUT para cambiar nombre
+    res = await request('PUT', `/subcategories/${subcategoryId}`, { name: `Updated Subcategory ${timestamp}` }); // Petición PUT para cambiar nombre
     const subUpdateOk = res.ok && res.status === 200;
     log('PUT /subcategories/:id (actualizar)', subUpdateOk, `(Status: ${res.status})`); // Verifica 200 OK
     if (!subUpdateOk) error(`/subcategories/${subcategoryId} PUT`, res); // Si falló, imprime detalles
-  }  
+  }
+
   // ============= PRODUCTOS =============
   console.log('\n📋 TEST 5: PRODUCTOS');
   console.log('─────────────────────────────');
@@ -240,9 +242,9 @@ async function runTests() { // Función principal que ejecuta todos los tests en
   console.log('─────────────────────────────');
 
   res = await request('GET', '/statistics'); // Petición GET /api/statistics para obtener conteos de todas las colecciones
-  log('GET /statistics', res.ok && res.status === 200 && res.data?.totalProducts !== undefined, `(Status: ${res.status})`); // Verifica 200 y que exista el campo totalProducts
+  log('GET /statistics', res.ok && res.status === 200 && res.data?.data?.totalProducts !== undefined, `(Status: ${res.status})`); // Verifica 200 y que exista el campo totalProducts
   if (res.ok) { // Si la petición fue exitosa
-    console.log(`   Productos: ${res.data.totalProducts}, Categorías: ${res.data.totalCategories}, Usuarios: ${res.data.totalUsers}`); // Imprime los totales principales
+    console.log(`   Productos: ${res.data.data.totalProducts}, Categorías: ${res.data.data.totalCategories}, Usuarios: ${res.data.data.totalUsers}`); // Imprime los totales principales
   }
 
   // ============= TEST 7: DESACTIVACIÓN (Soft Delete con Cascadas) =============
