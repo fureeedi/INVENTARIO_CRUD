@@ -34,8 +34,9 @@ const validateSubcategory = [
 
 // RUTAS CRUD
 router.post('/',
-    verifyToken,
+    verifyToke,
     checkRole('admin', 'coordinador'),
+    validateSubcategory,
     subcategoryController.createSubcategory
 );
 
@@ -50,6 +51,7 @@ router.get('/:id',
 router.put('/:id',
     verifyToken,
     checkRole('admin', 'coordinador'),
+    validateSubcategory,
     subcategoryController.updateSubcategory
 );
 

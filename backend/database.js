@@ -1,5 +1,5 @@
 /**
- * Modulo de conexió a la base de datos
+ * MODULO CONEXION A LA BASE DE DATOS
  * - Este archivo maneja la conexión de la base de datos a mongoDB utilizando Mongoose
  * - Establece la conexión con la base de datos
  * - Configura la opciones de conexión

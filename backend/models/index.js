@@ -10,7 +10,6 @@ const Category = require('./Category');
 const Subcategory = require('./Subcategory');
 
 // Exportar todos los modelos
-
 module.exports = {
     User,
     Product,

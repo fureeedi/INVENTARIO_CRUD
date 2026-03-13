@@ -35,72 +35,72 @@ exports.createProduct = async (req, res) => {
         });
         }
 
-        //validar que la categoria existe
-        const categoryExist = await Category.findById(category);
-        if(!categoryExist){
-            return res.status(404).json({
-                success: false,
-                message: 'la categoria solicitada no existe',
-                categoryId: category
-            });
-        }
-        //validar que la subcategoria existe y pertenece a la categoria especificada
-        const subcategoryExist = await Subcategory.findOne({
-            _id: subcategory,
-            category: category
+    //validar que la categoria existe
+    const categoryExist = await Category.findById(category);
+    if(!categoryExist){
+        return res.status(404).json({
+            success: false,
+            message: 'la categoria solicitada no existe',
+            categoryId: category
         });
-        if (!subcategoryExist){
+    }
+    //validar que la subcategoria existe y pertenece a la categoria especificada
+    const subcategoryExist = await Subcategory.findOne({
+        _id: subcategory,
+        category: category
+    });
+    if (!subcategoryExist){
+        return res.status(400).json({
+            success: false,
+            message: 'la subcategoria no existe o no pertenece a la categoria especificada'
+        });
+    }
+    // ===== CREAR PRODUCTO ======  
+
+        const product = new Product({
+            name,
+            description,
+            price,
+            stock,
+            category,
+            subcategory
+        });
+
+        //si hay usuario autenticado, registrar quien creo el producto
+        if (req.user && req.user._id){
+            product.createdBy = req.user._id;
+        }
+        //guardar en base de datos
+        const savedProduct = await product.save();
+
+        //obtener producto poblado con datos de relaciones (populate)
+        const productWithDetails = await Product.findById(savedProduct._id)
+            .populate('category', 'name')
+            .populate('subcategory', 'name')
+            .populate('createdBy', 'username email');
+
+            return res.status(201).json({
+                success: true,
+                message: 'Producto creado exitosamente',
+                data: productWithDetails
+            });
+    } catch (error){
+        console.error('Error en createProduct: ', error);
+
+        //manejar error de duplicado (campo unico)
+        if(error.code === 11000){
             return res.status(400).json({
                 success: false,
-                message: 'la subcategoria no existe o no pertenece a la categoria especificada'
+                message: 'ya existe un producto con ese nombre'
             });
         }
-        // ===== CREAR PRODUCTO ======  
-
-            const product = new Product({
-                name,
-                description,
-                price,
-                stock,
-                category,
-                subcategory
-            });
-
-            //si hay usuario autenticado, registrar quien creo el producto
-            if (req.user && req.user._id){
-                product.createdBy = req.user._id;
-            }
-            //guardar en base de datos
-            const savedProduct = await product.save();
-
-            //obtener producto poblado con datos de relaciones (populate)
-            const productWithDetails = await Product.findById(savedProduct._id)
-                .populate('category', 'name')
-                .populate('subcategory', 'name')
-                .populate('createdBy', 'username email');
-
-                return res.status(201).json({
-                    success: true,
-                    message: 'Producto creado exitosamente',
-                    data: productWithDetails
-                });
-        } catch (error){
-            console.error('Error en createProduct: ', error);
-
-            //manejar error de duplicado (campo unico)
-            if(error.code === 11000){
-                return res.status(400).json({
-                    success: false,
-                    message: 'ya existe un producto con ese nombre'
-                });
-            }
-            res.status(500).json({
-                success: false,
-                message: 'error al crear producto',
-                error: error.message
-            });
-        }       
-    };
+        res.status(500).json({
+            success: false,
+            message: 'error al crear producto',
+            error: error.message
+        });
+    }       
+};
 
     /**
      * READ: Obtener productos (con filtro de activos/inactivos)
@@ -112,79 +112,79 @@ exports.createProduct = async (req, res) => {
      * 
      * retorna: array de productos poblados con categoria y subcategoria
      */
-    exports.getProducts =async (req, res) =>{
-        try {
-            // Determinar si incluir productos inactivos
-            const includeInactive = req.query.includeInactive === 'true';
-            const activeFilter = includeInactive ? {} : { active: { $ne: false} };
+exports.getProducts =async (req, res) =>{
+    try {
+        // Determinar si incluir productos inactivos
+        const includeInactive = req.query.includeInactive === 'true';
+        const activeFilter = includeInactive ? {} : { active: { $ne: false} };
 
-            //obtener productos con datos relacionados
-            const products = await Product.find(activeFilter)
-                .populate('category', 'name')
-                .populate('subcategory', 'name')
-                .sort({ createdAt: -1});
+        //obtener productos con datos relacionados
+        const products = await Product.find(activeFilter)
+            .populate('category', 'name')
+            .populate('subcategory', 'name')
+            .sort({ createdAt: -1});
 
-                // si el usuario es auxiliar, no mostrar informacion de quien lo creo
-                if (req.use && req.user.role === 'auxiliar'){
-                    //Ocultar campo createdBy para usuarios auxiliares
+            // si el usuario es auxiliar, no mostrar informacion de quien lo creo
+            if (req.use && req.user.role === 'auxiliar'){
+                //Ocultar campo createdBy para usuarios auxiliares
 
-                    products.forEach(product => {
-                        product.createdBy = undefined;
-                    });
-                }
-
-                res.status(200).json({
-                    success: true,
-                    count: products.lenght,
-                    data: products
-                });
-        } catch (error){
-            console.error('Error en getProducts ', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error al obtener productos',
-                error: error.message
-            });
-        }
-    };
-    /**
-     * READ: Obtener un producto especifico por ID
-     * 
-     * GET /api/products/:id
-     * 
-     * retorna: producto poblado con categoria y subcategoria
-     */
-    exports.getProductById = async (req, res) => {
-        try{
-            const product = await Product.findById(req.params.id)
-                .populate('category', 'name description')
-                .populate('subcategory', 'name description');
-
-                if(!product) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Producto no encontrado'
-                    });
-                }
-
-                //ocultar createdBy para usuarios auxiliares
-                if (req.user && req.user.role === 'auxiliar') {
+                products.forEach(product => {
                     product.createdBy = undefined;
-                }
-
-                res.status(200).json({
-                    success: true,
-                    data: product
                 });
-        } catch (error) {
-            console.error ('Error en getPorcutById ', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error al obtener producto',
-                error: error.message
+            }
+
+            res.status(200).json({
+                success: true,
+                count: products.lenght,
+                data: products
             });
-        }
-    };
+    } catch (error){
+        console.error('Error en getProducts ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener productos',
+            error: error.message
+        });
+    }
+};
+/**
+* READ: Obtener un producto especifico por ID
+* 
+* GET /api/products/:id
+* 
+* retorna: producto poblado con categoria y subcategoria
+*/
+exports.getProductById = async (req, res) => {
+    try{
+        const product = await Product.findById(req.params.id)
+            .populate('category', 'name description')
+            .populate('subcategory', 'name description');
+
+            if(!product) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Producto no encontrado'
+                });
+            }
+
+            //ocultar createdBy para usuarios auxiliares
+            if (req.user && req.user.role === 'auxiliar') {
+                product.createdBy = undefined;
+            }
+
+            res.status(200).json({
+                success: true,
+                data: product
+            });
+    } catch (error) {
+        console.error ('Error en getPorcutById ', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener producto',
+            error: error.message
+        });
+    }
+};
 
     /**
      * UPDATE: Actualizar un producto
@@ -197,58 +197,58 @@ exports.createProduct = async (req, res) => {
      *  - Retoma producto actualizado
      */
 
-    exports.updateProduct = async (req, res ) => {
-        try{
-            const {name, description, price, stock, category, subcategory } = req.body;
-            const updateData = {};
+exports.updateProduct = async (req, res ) => {
+    try{
+        const {name, description, price, stock, category, subcategory } = req.body;
+        const updateData = {};
 
-            //agregar solo los campos que fueron enviados
-            if (name) updateData.name = name;
-            if (description) updateData.description = description;
-            if (price) updateData.price = price;
-            if (stock) updateData.stock = stock;
-            if (category) updateData.category = category;
-            if (subcategory) updateData.subcategory = subcategory;
+        //agregar solo los campos que fueron enviados
+        if (name) updateData.name = name;
+        if (description) updateData.description = description;
+        if (price) updateData.price = price;
+        if (stock) updateData.stock = stock;
+        if (category) updateData.category = category;
+        if (subcategory) updateData.subcategory = subcategory;
 
-            //validar relaciones si se actualizan
-            if(category || subcategory ){
-                if(category) {
-                    const categoryExist = await Category.findById(category);
-                    if(!categoryExist) {
-                        return res.status(404).json({
-                            success: false,
-                            message: 'la categoria solicitada no existe'
-                        });
-                    }
-                }
-                if(subcategory){
-                    const subcategoryExist = await Subcategory.findOne({
-                        _id: subcategory,
-                        category: category || updateData.category
+        //validar relaciones si se actualizan
+        if(category || subcategory ){
+            if(category) {
+                const categoryExist = await Category.findById(category);
+                if(!categoryExist) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'la categoria solicitada no existe'
                     });
-                    if (!subcategoryExist) {
-                        return res.status(404).json({
-                            success: false,
-                            message: 'La subcategoria no existe o no pertenece a la categoria'
-                        });
-                    }
                 }
             }
-
-            //actualizar producto en BD
-            const updateProduct = await Product.findByIdAndUpdate(req.params.id, updateData, {
-                new: true,
-                runValidators: true
-            }).populate('category', 'name')
-              .populate('subcategory', 'name')
-              .populate('createdBy', 'username email');
-
-            if (!updateProduct) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'producto no encontrado'
+            if(subcategory){
+                const subcategoryExist = await Subcategory.findOne({
+                    _id: subcategory,
+                    category: category || updateData.category
                 });
+                if (!subcategoryExist) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'La subcategoria no existe o no pertenece a la categoria'
+                    });
+                }
             }
+        }
+
+        //actualizar producto en BD
+        const updateProduct = await Product.findByIdAndUpdate(req.params.id, updateData, {
+            new: true,
+            runValidators: true
+        }).populate('category', 'name')
+            .populate('subcategory', 'name')
+            .populate('createdBy', 'username email');
+
+        if (!updateProduct) {
+            return res.status(404).json({
+                success: false,
+                message: 'producto no encontrado'
+            });
+        }
 
            res.status(200).json({
             success: true,
@@ -262,8 +262,8 @@ exports.createProduct = async (req, res) => {
             message: 'Error al actualizar producto',
             error: error.message
         });
-      }  
-    };
+    }  
+};
 
     /**
      * DELETE: Eliminar o desactivar un producto
@@ -278,42 +278,42 @@ exports.createProduct = async (req, res) => {
      * HARD DELETE: Elimina permanentemente el documento
      */
 
-    exports.deleteProduct = async (req, res ) => {
-        try{
-            const isHardDelete = req.query.isHardDelete === 'true';
-            const product = await Product.findById(req.params.id);
+exports.deleteProduct = async (req, res ) => {
+    try{
+        const isHardDelete = req.query.isHardDelete === 'true';
+        const product = await Product.findById(req.params.id);
 
-            if(!product){
-                return res.status(404).json({
-                    success: false,
-                    message: 'Producto no encontrado'
-                });
-            }
-
-            if (isHardDelete) {
-                //======== HARD DELETE: Eliminar permanentemente de la BD =======
-                await Product.findByIdAndDelete(req.params.id);
-                res.status(200).json({
-                    success: true,
-                    message: 'Producto eliminado permanentemente de la base de datos',
-                    data: product
-                });
-            } else {
-                // ============= SOFT DELETE: Solo marcar como inactivo ======
-                product.active = false;
-                await product.save();
-                res.status(200).json({
-                    success: true,
-                    message: 'Producto desactivado exitosamente (soft delete)',
-                    data: product
-                });
-            }
-        } catch (error) {
-            console.error('Error en deleteProduct ', error)
-            res.status(500).json({
+        if(!product){
+            return res.status(404).json({
                 success: false,
-                message: 'error al eliminar producto',
-                error: error.message
+                message: 'Producto no encontrado'
             });
         }
-    };
+
+        if (isHardDelete) {
+            //======== HARD DELETE: Eliminar permanentemente de la BD =======
+            await Product.findByIdAndDelete(req.params.id);
+            res.status(200).json({
+                success: true,
+                message: 'Producto eliminado permanentemente de la base de datos',
+                data: product
+            });
+        } else {
+            // ============= SOFT DELETE: Solo marcar como inactivo ======
+            product.active = false;
+            await product.save();
+            res.status(200).json({
+                success: true,
+                message: 'Producto desactivado exitosamente (soft delete)',
+                data: product
+            });
+        }
+    } catch (error) {
+        console.error('Error en deleteProduct ', error)
+        res.status(500).json({
+            success: false,
+            message: 'error al eliminar producto',
+            error: error.message
+        });
+    }
+};

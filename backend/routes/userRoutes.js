@@ -1,50 +1,43 @@
-/**
- * Rutas de usuarios
- * Definw endpoints para gestionar de usuarios en el sistema
- * POST api/users
- * GET api/users
- * GET api/users/:id
- * PUT api/users/:id
- * DELETE api/users/:id
- */
+/*
+post /api/user
+get /api/users
+get /api/users/:id
+delete /api/users/:id
+
+*/
 
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
-const { verifyToken } = require('../middlewares/authJwt');
-const { checkRole } = require('../middlewares/role');
+const userController = require ('../controllers/userController');
+const {verifyToken} = require('../middleswares/authJwt');
+const  {checkRole} = require('../middleswares/role');
 
-// Revision de problemas de autenticación y autorización
-
-// llama información
-router.use((req, res, next) => { // no ha ejecutado rutas
-    console.log('\n=== DIAGNOSTICO FR RUTA ===');
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-    console.log('Headers', {
-        'Authorization': req.headers.authorization ? '***' + req.headers.authorization.slice(-4) : null,
-        'x-access-token' : req.headers ['x-access-token'] ? '***' + req.headers['x-access-token'].slice(-4) : null, 'user-agent': req.headers['user-agent']
+router.use((req , res , next) => {
+    console.log(' Diagnostifo Fr ruta ===');
+    console.log (`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+    console.log ('Headers: ',{
+        'Authorization': req.headers.authorization ? '***' + req.headers.authorization.slice(-4): null ,
+        'x-access-token': req.headers['x-access-token'] ? '***' + req.headers['x-access-token'].slice(-4): null ,
     });
-
     next();
 })
 
-// RUTAS DE USUARIO
+// rutas de usuarios
 
-// crear usuario
-router.post('/', verifyToken, checkRole('admin'), userController.createUser
-);
+// crear nuevo usuario (solo admin)
+router.post('/', verifyToken, checkRole('admin'), userController.createUser);
 
-// listar usuarios
-router.get('/', verifyToken, checkRole('admin', 'coordinador', 'auxiliar'), userController.getAllUsers
-);
+// listar todos los usuarios
+router.get('/' , verifyToken, checkRole('admin','coordinador', 'auxiliar'), userController.getAllUsers);
 
-// obtener usuario por id
-router.get('/:id', verifyToken, checkRole('admin', 'coordinador', 'auxiliar'), userController.getUserById);
+//obtener un usuario por id 
+router.get('/:id', verifyToken, checkRole('admin','coordinador', 'auxiliar'), userController.getUserById);
 
 // actualizar usuario por id
-router.put('/:id', verifyToken, checkRole('admin', 'coordinador', 'auxiliar'), userController.updateUser);
+router.put('/:id', verifyToken, checkRole('admin'),userController.updateUser);
 
-// eliminar usuario por id
-router.delete('/:id', verifyToken, checkRole('admin'), userController.deleteUser);
+//eliminar o desactivar un usuario por id (solo admin)
+router.delete('/:id', verifyToken,checkRole('admin'),userController.deleteUser);
+
 
 module.exports = router;

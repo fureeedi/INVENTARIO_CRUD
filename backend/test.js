@@ -3,7 +3,7 @@
  * Valida todos los endpoints según postman.md
  * Ejecutar: npm test o node test.js (requiere servidor corriendo en localhost:3000)
  */
-// Agregar esta línea al inicio del archivo
+
 const API_URL = 'http://localhost:3000/api'; // URL base del servidor; todas las peticiones se enviarán a este servidor
 let token = null;         // Almacena el JWT del admin tras el login; se incluye en todas las peticiones autenticadas
 let categoryId = null;    // Almacena el _id de la categoría creada durante las pruebas

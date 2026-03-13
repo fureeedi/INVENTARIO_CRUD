@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema({
 });
 
     //Middleware encripta la contraseña antes de guardar el usuario
-    userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function(next) {
     //si el passwor no fue modificado ni encripta el nuevo
     if(!this.isModified('password')) return next();
 
@@ -68,8 +68,8 @@ const userSchema = new mongoose.Schema({
         // si hay error en la encriptacion pasar error al siguiente middleware
         next(error);
     }
-    });
+});
 
-    //crear y exportar el modulo de usuario
+//crear y exportar el modulo de usuario
 
-    module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', userSchema);

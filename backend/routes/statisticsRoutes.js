@@ -1,7 +1,7 @@
-/**
- * Rutas de a las estadisticas
- * - Define el endpoint para obtener las estadisticas generales del sistema
- */
+/*
+rutas de las estadisticas
+define el endpoints para obtener las estadisticas  generales del sistema
+*/
 
 const express = require ('express');
 const router = express.Router();

@@ -59,7 +59,7 @@ exports.createCategory = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Categoria creada',
-            data: newCategory     
+            data: newCategory      
         });
     } catch (error){
         console.error('Error en createCategory:', error);
@@ -235,7 +235,7 @@ exports.updateCategory = async (req, res) => {
  500: Error de base de datos
  */
 
-exports.deleteCategory = async (req, res) => {
+ exports.deleteCategory = async (req, res) => {
     try{
         const SubCategory = require('../models/Subcategory');
         const Product = require('../models/Product');

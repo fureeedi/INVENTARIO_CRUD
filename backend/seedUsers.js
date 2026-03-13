@@ -4,7 +4,7 @@
 // mongoose → librería ODM para conectar Node.js con MongoDB
 const mongoose = require('mongoose');
 
-// bcryptjs → librería para encriptar contraseñas; no se usa directamente aquí porque
+// bcrypt → librería para encriptar contraseñas; no se usa directamente aquí porque
 // el modelo User tiene un pre-save hook que encripta automáticamente
 const bcrypt = require('bcryptjs');
 

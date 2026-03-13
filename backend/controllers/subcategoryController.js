@@ -207,7 +207,7 @@ exports.updateSubcategory = async (req, res) => {
  500: Error de base de datos
  */
 
-exports.deleteCategory = async (req, res) => {
+ exports.deleteCategory = async (req, res) => {
     try{
         const Product = require('../models/Product');
         const isHardDelete = req.query.hardDelete === 'true';
@@ -262,4 +262,4 @@ exports.deleteCategory = async (req, res) => {
             error: error.message
         });
     }
-};
+ };

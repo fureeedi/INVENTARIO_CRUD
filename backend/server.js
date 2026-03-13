@@ -1,103 +1,93 @@
-/**
- *  SERVIDOR PRINCIPAL
- * - Punto de entrada a la aplicación backend
- * - Configura Express, cors, conecta MongoDB, define rutas y conecta con el frontend 
- */
+/*
+servidor principal
 
-require('dotenv').config(); // Carga todas las variables de entorno
-const express = require('express'); // Conexión a traves del framework - HTTP
-const mongoose = require('mongoose'); // Conexión a MongoDB
-const cors = require('cors'); // Conexión a frontend
-const morgan = require('morgan'); // Registra todas las solicitudes HTTP
+punto de entrada a la aplicacion backend
+
+configura express, cors y conecta a la base de datos MONGO DB , define  rutas y conecta con el frontend 
+*/
+
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const morgan = require('morgan');
 const config = require('./config');
 
-/**
- * VALIDACIONES INICIALES
- * - Verifica que las variables de entorno requeridas esten definidas
- */
-const mongoUri = process.env.MONGODB_URI || config.DB.URL;
+/*
+validaciones iniciales
+verifica que las variables de entorno requeridas esten definidas
+*/
 
-if (!mongoUri) { // variable de entorno existe
-    console.error('Error: MONGO_URI no esta definida en .env');
+// validar variables de entorno esenciales
+// se puede usar la URL de la configuración por defecto si no se especifica
+const mongoUri = process.env.MONGO_URI || config.DB.URL;
+if (!mongoUri){
+    console.error('error: cadena de conexión MongoDB no está definida');
     process.exit(1);
 }
 
-if(!process.env.JWT_SECRET) { // definida jsonwebtoken
-    console.error('Error: JWT_SECRET no esta definida en .env');
+if (!process.env.JWT_SECRET){
+    console.error('error : JWT_SECRET no esta definida en .env');
     process.exit(1);
 }
 
-// Importar todas las rutas
-const authRoutes = require('./routes/authRoutes');
+//importar todas las rutas
+const authRoutes = require ('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const subcategoryRoutes = require('./routes/subcategoryRoutes');
 const statisticsRoutes = require('./routes/statisticsRoutes');
 
-// Iniciar express
-const app = express(); // conexiones 
 
-// Cors permite las solicitudes desde el frontend
+const app = express();
+
 app.use(cors({
     origin: 'http://localhost:3000',
-    credentials: true,
+    credentials: true
 }));
 
-// Morgan registra todas las solicitudes HTTP en consola
+// logging HTTP requests
 app.use(morgan('dev'));
 
-// Express JSON pasa bodies en formato JSON
-app.use(express.json());
+// body parsers
+app.use(express.json());                // parse JSON bodies
+app.use(express.urlencoded({extended:true})); // parse form-encoded bodies
 
-// Express URL encoded soporta datos form-encoded
-app.use(express.urlencoded({ extended: true }));
-
-// Conexión a MongoDB
+//coneion a mongo db
 mongoose.connect(mongoUri, config.DB.OPTIONS)
-    .then(() => console.log('OK MongoDB conectado'))
-    .catch((error) => {
-        console.error('Error de conexión a MongoDB:', error.message);
+    .then(() => console.log('MongoDB conectado exitosamente'))
+    .catch(err => {
+        console.error('Error al conectar a MongoDB:', err.message);
         process.exit(1);
     });
 
-// Registra Rutas
+//registra rutas
 
-// Rutas de autenticación de login
 app.use('/api/auth', authRoutes);
-
-// Rutas de usuarios
 app.use('/api/users', userRoutes);
-
-// Rutas de productos CRUD
 app.use('/api/products', productRoutes);
-
-// Rutas de categorías CRUD
 app.use('/api/categories', categoryRoutes);
-
-// Rutas de subcategorias CRUD
 app.use('/api/subcategories', subcategoryRoutes);
-
-// Rutas de estadísticas
 app.use('/api/statistics', statisticsRoutes);
 
 //ruta base opcional para verificar que el servidor responde
 app.get('/', (req, res) => res.send('Backend funcionando'));
 
-// Manejo de errores
+// manejo de rutas no encontradas
 app.use((req, res, next) => {
     res.status(404).json({
         success: false,
-        message: 'Ruta no encontrada',
+        message: 'Recurso no encontrado'
     });
 });
 
 // middleware global de manejo de errores
-app.use((error, req, res, next) => {
-    console.error('Error global:', error);
-    res.status(error.status || 500).json({
+app.use((err, req, res, next) => {
+    console.error('Error global:', err);
+    res.status(err.status || 500).json({
         success: false,
-        message: error.message || 'Error interno del servidor'
+        message: err.message || 'Error interno del servidor'
     });
 });
 
@@ -105,17 +95,17 @@ app.use((error, req, res, next) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
-process.on('uncaughtException', error => {
-    console.error('Uncaught Exception thrown:', error);
+process.on('uncaughtException', err => {
+    console.error('Uncaught Exception thrown:', err);
     process.exit(1);
 });
 
-// Iniciar el servidor
+// iniciar el servidor
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Servidor iniciado en el puerto ${PORT}`);
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
 
-// exportar la instancia de app (util para pruebas o uso en otros modulos)
+// exportar la instancia de app (útil para pruebas o uso en otros módulos)
 module.exports = app;
