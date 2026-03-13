@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authControllers');
 
-const {verifySignUp}  = require('../middlewares/')
+const verifySignUp  = require('../middlewares/verifySignUp')
 const {verifyToken} = require('../middlewares/authJwt');
 const {checkRole} = require('../middlewares/role');
 
