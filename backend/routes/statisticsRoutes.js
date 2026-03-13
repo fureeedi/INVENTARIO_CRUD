@@ -5,7 +5,7 @@
 
 const express = require ('express');
 const router = express.Router();
-const {getStatistics} = require('../controllers/statistics.Controller')
+const {getStatistics} = require('../controllers/statisticsController')
 
 // get /api/statistics obtiene las estadisticas del sistema
 router.get('/', getStatistics);

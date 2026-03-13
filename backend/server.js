@@ -15,8 +15,9 @@ const config = require('./config');
  * VALIDACIONES INICIALES
  * - Verifica que las variables de entorno requeridas esten definidas
  */
+const mongoUri = process.env.MONGODB_URI || config.DB.URL;
 
-if (!process.env.MONGODB_URI) { // variable de entorno existe
+if (!mongoUri) { // variable de entorno existe
     console.error('Error: MONGO_URI no esta definida en .env');
     process.exit(1);
 }
@@ -53,11 +54,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Conexión a MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(mongoUri, config.DB.OPTIONS)
     .then(() => console.log('OK MongoDB conectado'))
     .catch((error) => {
-        console.error('Error de conexión a MongoDB:',
-        error.message);
+        console.error('Error de conexión a MongoDB:', error.message);
         process.exit(1);
     });
 
@@ -85,7 +85,7 @@ app.use('/api/statistics', statisticsRoutes);
 app.get('/', (req, res) => res.send('Backend funcionando'));
 
 // Manejo de errores
-app.use((req, res) => {
+app.use((req, res, next) => {
     res.status(404).json({
         success: false,
         message: 'Ruta no encontrada',
@@ -95,7 +95,7 @@ app.use((req, res) => {
 // middleware global de manejo de errores
 app.use((error, req, res, next) => {
     console.error('Error global:', error);
-    res.status(err.status || 500).json({
+    res.status(error.status || 500).json({
         success: false,
         message: error.message || 'Error interno del servidor'
     });
@@ -114,7 +114,8 @@ process.on('uncaughtException', error => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
 
-    
+// exportar la instancia de app (util para pruebas o uso en otros modulos)
+module.exports = app;

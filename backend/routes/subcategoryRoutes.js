@@ -36,7 +36,6 @@ const validateSubcategory = [
 router.post('/',
     verifyToken,
     checkRole('admin', 'coordinador'),
-    validateSubcategory,
     subcategoryController.createSubcategory
 );
 
@@ -51,14 +50,13 @@ router.get('/:id',
 router.put('/:id',
     verifyToken,
     checkRole('admin', 'coordinador'),
-    validateSubcategory,
     subcategoryController.updateSubcategory
 );
 
 router.delete('/:id',
     verifyToken,
     checkRole('admin'), // no va validateSubcategory porque borra toda la información
-    subcategoryController.deleteSubcategory
+    subcategoryController.deleteCategory
 );
 
 module.exports = router;

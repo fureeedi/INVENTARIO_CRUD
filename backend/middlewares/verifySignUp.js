@@ -69,7 +69,7 @@ const checkDuplicateUsernameOrEmail = async (req, res, next) => {
         // no hay duplicados continuar
         next();
     } catch (err){
-        console.error('[verifySigp] Error en checkDuplicateUsernameOrEmail: ', err);
+        console.error('[verifySignUp] Error en checkDuplicateUsernameOrEmail: ', err);
         return res.status(500).json({
             success: false,
             message: 'Error al verificar credenciales',

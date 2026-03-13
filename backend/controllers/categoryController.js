@@ -259,7 +259,7 @@ exports.deleteCategory = async (req, res) => {
                 //paso 2 para eliminar todos productos
                 await Product.deleteMany({ category: req.params.id });
                 //paso 3 eliminar todos de subcategoria
-                await subcategory.deleteMany({ SubCategory:{ $in: subIds} } );
+                await SubCategory.deleteMany({ SubCategory:{ $in: subIds} } );
                 //paso 4 eliminar todas las subcategorias de esta categoria
                 await SubCategory.deleteMany({ category: req.params.id });
                 // paso 5 eliminar la categoria misma

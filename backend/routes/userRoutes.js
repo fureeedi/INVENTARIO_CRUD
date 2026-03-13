@@ -21,12 +21,8 @@ router.use((req, res, next) => { // no ha ejecutado rutas
     console.log('\n=== DIAGNOSTICO FR RUTA ===');
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
     console.log('Headers', {
-        'Authorization': req.headers.authorization ?
-        '***' + req.headers.authorization.slice(8) : 
-        null,
-        'x-access-token' : req.headers
-        ['x-access-token'] ? '***' + req.headers['x-access-token'].slice(8) : null, 
-        'user-agent': req.headers['user-agent']
+        'Authorization': req.headers.authorization ? '***' + req.headers.authorization.slice(-4) : null,
+        'x-access-token' : req.headers ['x-access-token'] ? '***' + req.headers['x-access-token'].slice(-4) : null, 'user-agent': req.headers['user-agent']
     });
 
     next();
@@ -35,37 +31,20 @@ router.use((req, res, next) => { // no ha ejecutado rutas
 // RUTAS DE USUARIO
 
 // crear usuario
-router.post('/',
-    verifyToken,
-    checkRole('admin'),
-    userController.createUser
+router.post('/', verifyToken, checkRole('admin'), userController.createUser
 );
 
 // listar usuarios
-router.get('/', 
-    verifyToken,
-    checkRole('admin', 'coordinador', 'auxiliar'),
-    userController.getAllUsers
+router.get('/', verifyToken, checkRole('admin', 'coordinador', 'auxiliar'), userController.getAllUsers
 );
 
 // obtener usuario por id
-router.get('/:id',
-    verifyToken,
-    checkRole('admin', 'coordinador', 'auxiliar'),
-    userController.getUserById);
+router.get('/:id', verifyToken, checkRole('admin', 'coordinador', 'auxiliar'), userController.getUserById);
 
 // actualizar usuario por id
-router.put('/:id',
-    verifyToken,
-    checkRole('admin', 'coordinador', 'auxiliar'),
-    userController.updateUser
-);
+router.put('/:id', verifyToken, checkRole('admin', 'coordinador', 'auxiliar'), userController.updateUser);
 
 // eliminar usuario por id
-router.delete('/:id',
-    verifyToken,
-    checkRole('admin'),
-    userController.deleteUser
-);
+router.delete('/:id', verifyToken, checkRole('admin'), userController.deleteUser);
 
 module.exports = router;
